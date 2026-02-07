@@ -177,9 +177,36 @@ async function init() {
   document.addEventListener("keydown", handleKeyboard);
 }
 
+function isValidSupabaseUrl(url) {
+  try {
+    const parsed = new URL(url);
+    const isLocal =
+      parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+    // Localhost can use http for development; everything else must be https
+    if (!isLocal && parsed.protocol !== "https:") return false;
+    if (isLocal || parsed.hostname.endsWith(".supabase.co")) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 function saveConfig() {
-  supabaseUrl = els.supabaseUrl.value.trim().replace(/\/$/, "");
-  supabaseKey = els.supabaseKey.value.trim();
+  const rawUrl = els.supabaseUrl.value.trim().replace(/\/$/, "");
+  const rawKey = els.supabaseKey.value.trim();
+
+  if (rawUrl && !isValidSupabaseUrl(rawUrl)) {
+    els.btnSaveConfig.textContent = "Invalid URL";
+    els.btnSaveConfig.classList.add("bg-red-600");
+    setTimeout(() => {
+      els.btnSaveConfig.textContent = "Save";
+      els.btnSaveConfig.classList.remove("bg-red-600");
+    }, 2000);
+    return;
+  }
+
+  supabaseUrl = rawUrl;
+  supabaseKey = rawKey;
   sessionStorage.setItem("vigil_supabase_url", supabaseUrl);
   sessionStorage.setItem("vigil_supabase_key", supabaseKey);
   els.btnSaveConfig.textContent = "Saved";
@@ -252,6 +279,8 @@ function handleKeyboard(e) {
 function onScenarioChange() {
   const id = parseInt(els.scenarioSelect.value);
   currentScenario = scenarios.find((s) => s.id === id) || null;
+
+  lastFullResult = null;
 
   if (!currentScenario) {
     els.scenarioDesc.textContent = "";
@@ -378,7 +407,10 @@ async function runReview() {
     const clientLatency = Date.now() - startTime;
 
     // Discard if scenario changed during fetch
-    if (currentScenario !== reviewScenario) return;
+    if (currentScenario !== reviewScenario) {
+      clearTimeout(timeoutId);
+      return;
+    }
 
     // Add to audit trail
     addAuditEntry(result, reviewScenario);
@@ -616,13 +648,13 @@ function renderAgentCards(reports, decision) {
     cards.push(
       agentCard(
         "Clinical Safety",
-        cs.risk_score,
-        cs.confidence,
-        cs.flags,
+        cs.risk_score || 0,
+        cs.confidence || 0,
+        cs.flags || [],
         "clinical",
-        cs.evidence,
+        cs.evidence || "",
         cs.recommendation,
-        cs.suggested_elements,
+        cs.suggested_elements || [],
         decision,
         0,
       ),
@@ -635,13 +667,13 @@ function renderAgentCards(reports, decision) {
     cards.push(
       agentCard(
         "Boundary",
-        b.violation_score,
-        b.confidence,
-        b.flags,
+        b.violation_score || 0,
+        b.confidence || 0,
+        b.flags || [],
         "boundary",
-        b.evidence,
+        b.evidence || "",
         b.recommendation,
-        b.suggested_elements,
+        b.suggested_elements || [],
         decision,
         1,
       ),
@@ -651,17 +683,21 @@ function renderAgentCards(reports, decision) {
   // Regulation
   if (reports.regulation_aware) {
     const r = reports.regulation_aware;
-    const extra = `State: ${formatState(r.inferred_state)} (${r.state_confidence.toFixed(2)})`;
+    const stateConf =
+      typeof r.state_confidence === "number"
+        ? r.state_confidence.toFixed(2)
+        : "N/A";
+    const extra = `State: ${formatState(r.inferred_state)} (${stateConf})`;
     cards.push(
       agentCard(
         "Regulation-Aware",
-        r.dysregulation_risk,
-        r.confidence,
-        r.flags,
+        r.dysregulation_risk || 0,
+        r.confidence || 0,
+        r.flags || [],
         "regulation",
-        r.evidence,
+        r.evidence || "",
         r.recommendation,
-        r.suggested_elements,
+        r.suggested_elements || [],
         decision,
         2,
         extra,
@@ -680,17 +716,17 @@ function renderAgentCards(reports, decision) {
         LEVEL_3: 0.75,
         LEVEL_4: 1.0,
       }[e.escalation_level] || 0;
-    const extra = `${e.escalation_level} | ${formatImminence(e.imminence)} | ${formatRiskType(e.risk_type)}`;
+    const extra = `${e.escalation_level || "LEVEL_0"} | ${formatImminence(e.imminence)} | ${formatRiskType(e.risk_type)}`;
     cards.push(
       agentCard(
         "Escalation",
         escScore,
-        e.confidence,
-        e.escalation_level !== "LEVEL_0"
+        e.confidence || 0,
+        e.escalation_level && e.escalation_level !== "LEVEL_0"
           ? [`${e.escalation_level}: ${formatRiskType(e.risk_type)}`]
           : [],
         "escalation",
-        e.evidence,
+        e.evidence || "",
         null,
         e.protocol ? [e.protocol] : [],
         decision,
@@ -729,29 +765,38 @@ function agentCard(
   index,
   extra = "",
 ) {
+  const safeScore = typeof score === "number" && !isNaN(score) ? score : 0;
+  const safeConfidence =
+    typeof confidence === "number" && !isNaN(confidence) ? confidence : 0;
+  const safeFlags = Array.isArray(flags) ? flags : [];
+
   const scoreColor =
-    score < 0.3 ? "score-green" : score < 0.7 ? "score-yellow" : "score-red";
+    safeScore < 0.3
+      ? "score-green"
+      : safeScore < 0.7
+        ? "score-yellow"
+        : "score-red";
   const scoreTextColor =
-    score < 0.3
+    safeScore < 0.3
       ? "text-green-400"
-      : score < 0.7
+      : safeScore < 0.7
         ? "text-yellow-400"
         : "text-red-400";
 
   // Determine highlight based on whether this agent flagged and overall decision
   let highlightClass = "";
-  if (flags.length > 0) {
+  if (safeFlags.length > 0) {
     if (decision === "ESCALATE") highlightClass = "agent-highlight-darkred";
     else if (
       decision === "BLOCK_AND_REPLACE" ||
-      (score >= 0.7 && flags.length > 0)
+      (safeScore >= 0.7 && safeFlags.length > 0)
     )
       highlightClass = "agent-highlight-red";
     else if (decision === "REWRITE") highlightClass = "agent-highlight-amber";
   }
 
   const recBadge = recommendation
-    ? `<span class="text-[10px] px-1.5 py-0.5 rounded ${getRecBadgeClass(recommendation)}">${recommendation}</span>`
+    ? `<span class="text-[10px] px-1.5 py-0.5 rounded ${getRecBadgeClass(recommendation)}">${escapeHtml(String(recommendation))}</span>`
     : "";
 
   const evidenceId = `evidence-${type}`;
@@ -760,19 +805,19 @@ function agentCard(
     <div class="bg-vigil-card border border-vigil-border rounded p-3 agent-card-enter ${highlightClass}" style="animation-delay: ${index * 100}ms">
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center gap-2">
-          <span class="text-xs font-semibold text-gray-300">${name}</span>
+          <span class="text-xs font-semibold text-gray-300">${escapeHtml(name)}</span>
           ${recBadge}
         </div>
-        <span class="text-xs ${scoreTextColor} font-mono font-bold">${score.toFixed(3)}</span>
+        <span class="text-xs ${scoreTextColor} font-mono font-bold">${safeScore.toFixed(3)}</span>
       </div>
       <div class="score-bar mb-2">
-        <div class="score-bar-fill ${scoreColor}" data-target-width="${score * 100}%"></div>
+        <div class="score-bar-fill ${scoreColor}" data-target-width="${safeScore * 100}%"></div>
       </div>
-      <div class="text-[10px] text-gray-500 mb-1">Confidence: ${confidence.toFixed(2)}</div>
+      <div class="text-[10px] text-gray-500 mb-1">Confidence: ${safeConfidence.toFixed(2)}</div>
       ${extra ? `<div class="text-[10px] text-gray-500 mb-1">${escapeHtml(extra)}</div>` : ""}
       ${
-        flags.length > 0
-          ? `<div class="flex flex-wrap gap-1 mt-1 mb-2">${flags.map((f) => `<span class="flag-pill flag-${type}">${escapeHtml(String(f))}</span>`).join("")}</div>`
+        safeFlags.length > 0
+          ? `<div class="flex flex-wrap gap-1 mt-1 mb-2">${safeFlags.map((f) => `<span class="flag-pill flag-${type}">${escapeHtml(String(f))}</span>`).join("")}</div>`
           : '<div class="text-[10px] text-gray-600 italic mb-2">No flags</div>'
       }
       ${

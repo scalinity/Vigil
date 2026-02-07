@@ -173,7 +173,7 @@ session_metadata: ${JSON.stringify(session_metadata)}`;
   // Call Haiku for fast triage classification
   try {
     const result = await callClaude<TriageResult>(
-      "claude-haiku-4-5-20241022",
+      "claude-3-5-haiku-20241022",
       TRIAGE_SYSTEM_PROMPT,
       userMessage,
       500,
