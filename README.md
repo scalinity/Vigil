@@ -1,135 +1,108 @@
 # Vigil
 
-**Real-time safety infrastructure for therapeutic AI conversations.**
-
-> As AI therapy products proliferate, there is no standardized safety layer continuously evaluating what these systems actually say to vulnerable users. Vigil is that layer.
-
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?logo=typescript&logoColor=white)
-![Anthropic](https://img.shields.io/badge/Anthropic-API-black?logo=anthropic)
-![License](https://img.shields.io/badge/License-AGPL--3.0-green)
+**Building the safety layer that AI therapy products need but do not have.**
 
 ---
 
-## Problem
+## The Problem We Saw
 
-AI-powered therapy and mental health chat products are shipping fast. The common pattern:
+AI-powered mental health products are multiplying rapidly. Woebot, Wysa, Character.AI, Replika, and dozens of startups now offer conversational support. Many are genuinely helpful. But nearly all share a critical gap: they ship with safety infrastructure from 2010 — simple keyword blocklists that catch obvious harm while missing everything else.
 
-- A general-purpose LLM with a system prompt saying "you are a therapist"
-- Minimal or no real-time safety checking beyond keyword blocklists
-- No clinical audit trail
-- No mechanism to detect nuanced therapeutic harm
+The consequences are not hypothetical. Published research and user reports document repeated patterns:
 
-**Documented failure modes:**
+- Users expressing passive suicidal ideation receive generic encouragement because keywords like "tired of this" do not match any blocklist
+- Abuse survivors are told "I'm sure things will get better" — clinically minimizing language that discourages help-seeking
+- Users in acute distress receive CBT-style cognitive challenging because no system recognizes when grounding would be clinically appropriate
+- AIs make diagnostic claims ("this sounds like PTSD") or medication advice ("you might want to reduce your dosage") — well beyond any chatbot's legitimate scope
 
-1. **Missed suicidality signals**: Indirect expressions like "I just want it to end" receive generic encouragement
-2. **Unsafe reassurance**: Abuse disclosures minimized with "I'm sure things will get better"
-3. **Premature reframing**: CBT techniques pushed during acute distress when grounding is needed
-4. **Scope violation**: AI makes diagnostic claims or gives medication advice
-5. **Dependency reinforcement**: AI discourages professional help, becomes sole support
+We built Vigil because we believe AI can help people, and we believe that help must be safe.
 
 ---
 
 ## What Vigil Is
 
-Vigil is **middleware** — it sits between any therapeutic AI backend and the end user. Every model-generated response passes through Vigil's multi-agent review pipeline before delivery.
+Vigil is middleware. It sits between any therapeutic AI backend and the people it serves. Every model-generated response passes through a multi-agent safety pipeline before delivery.
 
 ```
-┌─────────────┐     ┌──────────────────────────────────┐     ┌──────────┐
-│  Therapy AI  │────>│            VIGIL                 │────>│   User   │
-│  (any LLM)  │     │                                  │     │          │
-│              │     │  ┌────────────────────────────┐  │     │          │
-│              │     │  │  Clinical Safety Agent     │  │     │          │
-│              │     │  │  Boundary Agent            │  │     │          │
-│              │     │  │  Regulation-Aware Agent    │  │     │          │
-│              │     │  │  Escalation Agent          │  │     │          │
-│              │     │  └────────────────────────────┘  │     │          │
-│              │     │                                  │     │          │
-│              │     │  ┌────────────────────────────┐  │     │          │
-│              │     │  │  Decision Engine            │  │     │          │
-│              │     │  └────────────────────────────┘  │     │          │
-└─────────────┘     └──────────────────────────────────┘     └──────────┘
+User → Therapy AI → Vigil Pipeline → User
+              │
+              ├─ Clinical Safety Agent
+              ├─ Boundary Agent
+              ├─ Regulation-Aware Agent
+              └─ Escalation Agent
 ```
 
-**Vigil is NOT:**
-- A therapy chatbot
-- A keyword blocklist
-- A replacement for human therapists
-
-**Vigil IS:**
-- A safety layer any therapy AI can drop in
-- Multi-agent clinical review pipeline
-- Audit trail generator for compliance
-- Open-source infrastructure for an industry that needs standardization
+This is not a therapy chatbot. It does not talk to users. It evaluates what other AIs say, in clinical context, and catches harm that keyword systems miss.
 
 ---
 
-## Architecture
+## Why Multi-Agent Architecture
 
-### Two-Tier Model Strategy
+Different safety concerns require different lenses. A response might be clinically appropriate but violate regulatory boundaries, or be therapeutically sound but miss a crisis indicator.
 
-```
-(user_message, ai_response)
-        │
-        v
-┌───────────────────────┐
-│  Haiku Triage (fast)  │  ← ~200ms, cheap
-│                       │
-│  Quick risk screen:   │
-│  • User distress cues │
-│  • Topic flags        │
-│  • Sentiment mismatch │
-└───────────┬───────────┘
-            │
-    Low Risk │ High Risk
-            v
-    ┌───────┴───────┐
-    │               │
-    ▼               ▼
-PASS ────────►  ┌───────────────────┐
-               │  Opus Deep Review   │
-               │  (parallel agents)  │
-               └─────────────────────┘
-```
+Vigil runs four parallel evaluators:
 
-**Haiku Triage** (~200ms): Quick risk screen, routes safe responses through.
+| Agent | What It Evaluates | Example Flag |
+|-------|-------------------|--------------|
+| **Clinical Safety** | Therapeutic appropriateness | Premature reframing during acute distress |
+| **Boundary** | Scope violations | Diagnostic claims, medication advice |
+| **Regulation** | Compliance concerns | HIPAA triggers, EU AI Act classification |
+| **Escalation** | Crisis indicators | Passive suicidality, self-harm language |
 
-**Opus Deep Review** (~3-5s): Parallel review by 4 clinical safety agents.
+Each agent returns structured assessment. A decision engine synthesizes these into final verdict: pass, rewrite, block, or escalate.
 
-### Agents
+We use a two-tier approach for real-world performance:
 
-| Agent | Purpose |
-|-------|---------|
-| **Clinical Safety Agent** | Evaluates therapeutic appropriateness |
-| **Boundary Agent** | Detects scope violations |
-| **Regulation-Aware Agent** | Flags regulatory concerns |
-| **Escalation Agent** | Identifies crisis indicators |
+1. **Fast triage (Haiku)**: ~200ms screening for obvious cases
+2. **Deep review (Opus)**: ~3-5s parallel agent evaluation for ambiguous cases
+
+This balances safety with latency.
 
 ---
 
-## Safety Categories
+## What Vigil Is Not
 
-### Clinical Safety
+- **A replacement for human clinicians.** Vigil makes AI safer. It does not replace therapists.
+- **A keyword blocklist.** We reason about clinical context, not pattern matching.
+- **A silver bullet.** No safety system catches everything. Vigil reduces risk. It does not eliminate it.
+- **A cure for bad design.** Safety cannot rescue fundamentally flawed products.
 
-- Acute distress misalignment
-- Therapeutic timing errors
-- Minimization/dismissal
-- Unrealistic reassurance
-- Dependency reinforcement
+We built Vigil because we believe AI has something to offer mental health care — and we believe that offering must be responsible.
 
-### Boundary Violations
+---
 
-- Diagnostic claims ("You may have PTSD")
-- Medication advice ("Reduce your dosage")
-- Treatment recommendations
-- Professional replacement
+## Technical Foundation
 
-### Escalation Triggers
+- **Model: Anthropic Claude** — Chosen for its reasoning capabilities and alignment characteristics
+- **Architecture: Multi-agent pipeline** — Specialized evaluators with structured output
+- **Latency: Two-tier triage** — Fast path for obvious cases, deep review for ambiguous ones
+- **Audit: Immutable logging** — Every review logged for clinical oversight and liability protection
+- **Privacy: Minimal data retention** — Review context logged; conversations never stored
 
-- Passive suicidal ideation
-- Active suicidal ideation
-- Self-harm expressions
-- Homicidal/violence indicators
-- Abuse/neglect disclosures
+---
+
+## Project Structure
+
+```
+Vigil/
+├── demo/              # Interactive demo for testing safety scenarios
+├── corpus/            # Annotated examples of safe/unsafe responses
+├── supabase/          # Audit logging database schema
+├── src/
+│   ├── agents/        # Four specialized agent implementations
+│   ├── triage/        # Fast-path Haiku classification
+│   ├── engine/        # Decision synthesis and routing
+│   └── api/          # REST interface for integration
+└── prompts/           # Clinical safety prompts (iteratively refined)
+```
+
+---
+
+## Why This Matters
+
+The AI therapy space is growing faster than its safety infrastructure. Products launch with good intentions and inadequate safeguards. Users trust these products with their most vulnerable moments. That trust must be earned.
+
+Vigil is our contribution to an industry-wide problem. We hope others will build on it, improve it, and make AI mental health support something people can trust.
 
 ---
 
@@ -139,88 +112,18 @@ PASS ────────►  ┌──────────────�
 git clone https://github.com/scalinity/Vigil.git
 cd Vigil
 npm install
-
-# Configure environment
-cp .env.example .env
-# Edit .env with your ANTHROPIC_API_KEY
-
+cp .env.example .env  # Add your Anthropic API key
 npm run dev
 ```
 
-### API Usage
-
-```bash
-curl -X POST http://localhost:3000/api/v1/review \
-  -H "Content-Type: application/json" \
-  -d '{
-    "userMessage": "I have been feeling really down lately...",
-    "aiResponse": "I am sorry you are feeling this way. Have you tried counting your blessings?",
-    "userContext": {"userId": "user_123"}
-  }'
-```
-
-### Response
-
-```json
-{
-  "verdict": "rewrite_required",
-  "decision": {
-    "action": "rewrite",
-    "reason": "Premature positive reframing in response to depression disclosure",
-    "category": "Therapeutic Timing Error"
-  },
-  "auditId": "audit_abc123"
-}
-```
+API documentation included in `/docs`.
 
 ---
 
-## Project Structure
+## Acknowledgments
 
-```
-Vigil/
-├── demo/                  # Demo web interface
-├── corpus/                # Annotated examples and test data
-├── supabase/              # Database schema for audit logging
-├── Specs/                 # Detailed specifications
-├── src/
-│   ├── agents/           # Agent implementations
-│   ├── triage/           # Haiku fast-path
-│   ├── engine/           # Decision engine
-│   └── api/              # HTTP handlers
-└── prompts/              # Agent system prompts
-```
+Vigil builds on decades of clinical supervision research, AI safety thinking, and therapeutic communication standards. We stand on shoulders we are still learning to see.
 
 ---
 
-## Demo
-
-```bash
-cd demo
-npm install
-npm run dev
-```
-
-Starts a local web interface for testing safety reviews.
-
----
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make changes
-4. Run tests
-5. Submit PR
-
----
-
-## License
-
-AGPL-3.0 — If you run Vigil as a service, source must be provided to users.
-
----
-
-<p align="center">
-  <em>Building the safety layer that AI therapy products need but do not have.</em>
-</p>
+**Vigil: AI therapy should be safe therapy.**
