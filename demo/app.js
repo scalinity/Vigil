@@ -39,9 +39,20 @@ let auditTrail = []; // Accumulated audit entries across scenarios
 let lastFullResult = null; // Last full audit record for modal
 let isAuditExpanded = false;
 let activeReviewController = null; // AbortController for in-flight review
+let activeReviewTimeoutId = null; // Timeout ID for in-flight review
 let activeAuditFetchId = null; // Track which audit fetch is current
 let modalPreviousFocus = null; // Focus restoration target when modal closes
 const MAX_AUDIT_ENTRIES = 50;
+
+// Short scenario labels per spec 11
+const SHORT_NAMES = {
+  1: "Missed SI",
+  2: "Premature Reframe",
+  3: "Diagnostic Claim",
+  4: "Abuse Disclosure",
+  5: "Dependency Pattern",
+  6: "Clean Pass",
+};
 
 // ============================================================
 // DOM Elements
@@ -239,7 +250,7 @@ function populateScenarioSelect() {
   scenarios.forEach((s) => {
     const opt = document.createElement("option");
     opt.value = s.id;
-    opt.textContent = `${s.demo_order}. ${s.name}`;
+    opt.textContent = `${s.demo_order}: ${SHORT_NAMES[s.demo_order] || s.name}`;
     els.scenarioSelect.appendChild(opt);
   });
 }
@@ -378,9 +389,13 @@ function updateReviewButton() {
 async function runReview() {
   if (!currentScenario || !supabaseUrl || !supabaseKey) return;
 
-  // Cancel any in-flight review
+  // Cancel any in-flight review and its timeout
   if (activeReviewController) {
     activeReviewController.abort();
+  }
+  if (activeReviewTimeoutId) {
+    clearTimeout(activeReviewTimeoutId);
+    activeReviewTimeoutId = null;
   }
   activeReviewController = new AbortController();
   const signal = activeReviewController.signal;
@@ -402,7 +417,10 @@ async function runReview() {
   };
 
   // Timeout after 30s
-  const timeoutId = setTimeout(() => activeReviewController.abort(), 30000);
+  activeReviewTimeoutId = setTimeout(
+    () => activeReviewController.abort(),
+    30000,
+  );
 
   try {
     const res = await fetch(`${supabaseUrl}/functions/v1/vigil-review`, {
@@ -415,7 +433,7 @@ async function runReview() {
       signal,
     });
 
-    clearTimeout(timeoutId);
+    clearTimeout(activeReviewTimeoutId);
 
     if (!res.ok) {
       const err = await res
@@ -429,7 +447,7 @@ async function runReview() {
 
     // Discard if scenario changed during fetch
     if (currentScenario !== reviewScenario) {
-      clearTimeout(timeoutId);
+      clearTimeout(activeReviewTimeoutId);
       return;
     }
 
@@ -442,7 +460,7 @@ async function runReview() {
     // Try to fetch full audit record for enriched details
     fetchAuditForDetails(result.audit_id, result);
   } catch (error) {
-    clearTimeout(timeoutId);
+    clearTimeout(activeReviewTimeoutId);
     if (error.name === "AbortError") {
       showError("Analysis timed out. The pipeline may be overloaded.");
     } else {
