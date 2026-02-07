@@ -1,6 +1,10 @@
 /* Vigil Demo UI — Custom Styles */
 
 /* Scrollbar styling */
+* {
+  scrollbar-color: #334155 #0f172a;
+  scrollbar-width: thin;
+}
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -15,9 +19,18 @@
   background: #475569;
 }
 
+/* Hide scrollbar for inline previews */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Decision badge colors */
 .badge-pass {
-  background-color: #22c55e;
+  background-color: #10b981;
   color: #052e16;
 }
 .badge-rewrite {
@@ -26,15 +39,15 @@
 }
 .badge-block {
   background-color: #ef4444;
-  color: #450a0a;
+  color: #fff;
 }
 .badge-escalate {
-  background-color: #dc2626;
+  background-color: #991b1b;
   color: white;
   animation: pulse-glow 1.5s ease-in-out infinite;
 }
 .badge-ask-human {
-  background-color: #8b5cf6;
+  background-color: #6b7280;
   color: white;
 }
 
@@ -48,6 +61,25 @@
   }
 }
 
+/* Decision badge pop animation */
+.decision-badge-enter {
+  animation: badge-pop 300ms ease-out;
+}
+
+@keyframes badge-pop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 /* Score bar */
 .score-bar {
   height: 4px;
@@ -58,7 +90,8 @@
 .score-bar-fill {
   height: 100%;
   border-radius: 2px;
-  transition: width 0.6s ease-out;
+  width: 0%;
+  transition: width 600ms ease-out;
 }
 .score-green {
   background-color: #22c55e;
@@ -72,8 +105,10 @@
 
 /* Flag pills */
 .flag-pill {
-  display: inline-block;
-  padding: 2px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
   border-radius: 4px;
   font-size: 11px;
   font-weight: 600;
@@ -124,6 +159,66 @@
   color: #f59e0b;
 }
 
+/* Original response strikethrough overlay */
+.response-struck {
+  text-decoration: line-through;
+  text-decoration-color: rgba(239, 68, 68, 0.6);
+  color: #94a3b8;
+  transition: all 300ms ease;
+}
+
+/* Corrected response slide-in animation */
+.corrected-response-enter {
+  animation: slide-down 400ms ease-out;
+}
+
+@keyframes slide-down {
+  0% {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+  }
+  100% {
+    max-height: 500px;
+    opacity: 1;
+  }
+}
+
+/* Corrected response green border pulse */
+.corrected-pulse {
+  animation: green-border-pulse 600ms ease-out;
+}
+
+@keyframes green-border-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.01);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Agent card staggered fade-in */
+.agent-card-enter {
+  animation: card-fade-in 300ms ease-out both;
+}
+
+@keyframes card-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Loading animation */
 @keyframes shimmer {
   0% {
@@ -137,4 +232,130 @@
   background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Audit trail row entry */
+.audit-row-enter {
+  animation: slide-in-right 300ms ease-out;
+}
+
+@keyframes slide-in-right {
+  0% {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Audit trail inline mini badge */
+.audit-mini-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Audit trail row selected */
+.audit-row-selected {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-left: 3px solid #3b82f6;
+}
+
+/* Change record styling */
+.change-removed {
+  border-left: 3px solid #ef4444;
+  background-color: rgba(239, 68, 68, 0.08);
+}
+.change-added {
+  border-left: 3px solid #22c55e;
+  background-color: rgba(34, 197, 94, 0.08);
+}
+.change-modified {
+  border-left: 3px solid #f59e0b;
+  background-color: rgba(245, 158, 11, 0.08);
+}
+
+/* Conflict resolution callout */
+.conflict-callout {
+  background-color: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 8px;
+}
+
+/* Evidence expandable section */
+.evidence-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+.evidence-toggle:hover {
+  color: #94a3b8;
+}
+.evidence-content {
+  max-height: 0;
+  overflow: hidden;
+  transition:
+    max-height 300ms ease,
+    opacity 200ms ease;
+  opacity: 0;
+}
+.evidence-content.expanded {
+  max-height: 500px;
+  opacity: 1;
+}
+
+/* Agent card highlight borders */
+.agent-highlight-amber {
+  border-left: 3px solid #f59e0b;
+}
+.agent-highlight-red {
+  border-left: 3px solid #ef4444;
+}
+.agent-highlight-darkred {
+  border-left: 3px solid #991b1b;
+}
+.agent-highlight-gray {
+  border-left: 3px dashed #6b7280;
+}
+
+/* Escalate pulsing card */
+.escalate-pulse {
+  animation: escalate-card-pulse 2s ease-in-out infinite;
+}
+
+@keyframes escalate-card-pulse {
+  0%,
+  100% {
+    border-color: #334155;
+  }
+  50% {
+    border-color: #991b1b;
+  }
+}
+
+/* Decision summary card for ESCALATE */
+.decision-card-escalate {
+  border-color: #991b1b;
+  animation: escalate-card-pulse 2s ease-in-out infinite;
+}
+
+/* Focus-visible rings for keyboard navigation */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+[role="button"]:focus-visible,
+[tabindex="0"]:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
 }

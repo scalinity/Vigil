@@ -184,7 +184,8 @@ function assembleContext(request: VigilReviewRequest): ContextPayload {
     -MAX_CONVERSATION_HISTORY,
   );
 
-  const messageCount = trimmedHistory.length + 2;
+  // Use original length, not trimmed length, so audit records reflect true session size
+  const messageCount = request.conversation_history.length + 2;
 
   const sessionMetadata: SessionMetadata = {
     session_id: request.session_id,
@@ -339,6 +340,16 @@ async function runAgentReview(
 
   escalation.confidence = clampScore(escalation.confidence);
 
+  // Validate escalation_level to prevent NaN propagation in decision engine
+  const VALID_LEVELS = ["LEVEL_0", "LEVEL_1", "LEVEL_2", "LEVEL_3", "LEVEL_4"];
+  if (!VALID_LEVELS.includes(escalation.escalation_level)) {
+    console.error(
+      "[pipeline] Malformed escalation_level, defaulting to LEVEL_0:",
+      escalation.escalation_level,
+    );
+    escalation.escalation_level = "LEVEL_0";
+  }
+
   return {
     reports: {
       clinical_safety: clinical,
@@ -361,7 +372,13 @@ async function rewriteIfNeeded(
   originalResponse: string,
 ): Promise<RewriteResult | null> {
   if (decision.decision === "PASS") return null;
-  if (decision.decision === "ASK_HUMAN") return null;
+
+  // ASK_HUMAN means confidence is too low to trust the assessment.
+  // There is no human in the loop at runtime, so we MUST NOT deliver
+  // the original response. Use a safe template instead.
+  if (decision.decision === "ASK_HUMAN") {
+    return buildSafeTemplateRewrite(decision);
+  }
 
   // ESCALATE: always use safe template with crisis resources.
   // Too dangerous to rely on the rewrite agent for the highest-severity case.
@@ -635,8 +652,11 @@ export async function reviewResponse(
       latencyMs,
     );
   } catch (error) {
-    // Catastrophic Failure Fallback
-    console.error("[CRITICAL] Pipeline crashed:", error);
+    // Catastrophic Failure Fallback — do NOT log user content
+    console.error(
+      "[CRITICAL] Pipeline crashed:",
+      error instanceof Error ? error.message : "Unknown error",
+    );
 
     const latencyMs = Date.now() - startTime;
     const safeTemplate =
