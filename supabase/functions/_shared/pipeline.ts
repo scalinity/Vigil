@@ -15,10 +15,9 @@ import type {
   RegulationReport,
   EscalationReport,
   EscalationLevel,
-  VigilDecisionType,
 } from "./types.ts";
-import { MAX_CONVERSATION_HISTORY, TRIAGE_THRESHOLD } from "./types.ts";
-import { computeDecision } from "./decision-engine.ts";
+import { MAX_CONVERSATION_HISTORY } from "./types.ts";
+import { computeDecision, clamp01 } from "./decision-engine.ts";
 import { insertAuditRecord } from "./audit-logger.ts";
 import { runClinicalSafetyAgent } from "./agents/clinical-safety.ts";
 import { runBoundaryAgent } from "./agents/boundary.ts";
@@ -123,12 +122,14 @@ const DEFAULT_REGULATION_REPORT: RegulationReport = {
 };
 
 const DEFAULT_ESCALATION_REPORT: EscalationReport = {
-  escalation_level: "LEVEL_0",
+  escalation_level: "LEVEL_1",
   confidence: 0.0,
   risk_type: "other",
   imminence: "uncertain",
-  evidence: "Agent failed -- default report substituted.",
-  protocol: "Agent failed. Route to human review.",
+  evidence:
+    "Agent failed -- default report substituted. Escalated to LEVEL_1 as fail-safe.",
+  protocol:
+    "Agent failed. Escalated to LEVEL_1 as fail-safe. Route to human review.",
   human_handoff_recommended: false,
 };
 
@@ -184,7 +185,8 @@ function assembleContext(request: VigilReviewRequest): ContextPayload {
     -MAX_CONVERSATION_HISTORY,
   );
 
-  // Use original length, not trimmed length, so audit records reflect true session size
+  // Use original length, not trimmed length, so audit records reflect true session size.
+  // +2 accounts for the current user_message and ai_response under review.
   const messageCount = request.conversation_history.length + 2;
 
   const sessionMetadata: SessionMetadata = {
@@ -224,6 +226,7 @@ async function triageCheck(
 
     if (
       typeof triageResult.triage_score !== "number" ||
+      isNaN(triageResult.triage_score) ||
       triageResult.triage_score < 0 ||
       triageResult.triage_score > 1
     ) {
@@ -251,12 +254,6 @@ async function triageCheck(
 // ============================================================
 // Step 3: Parallel Agent Review
 // ============================================================
-
-/** Clamp a number to [0, 1], treating NaN/undefined as 0. */
-function clampScore(value: unknown): number {
-  if (typeof value !== "number" || isNaN(value)) return 0;
-  return Math.max(0, Math.min(1, value));
-}
 
 interface AgentReviewResult {
   reports: AgentReports;
@@ -326,23 +323,29 @@ async function runAgentReview(
         })();
 
   // Sanitize agent scores to guard against malformed LLM output
-  clinical.risk_score = clampScore(clinical.risk_score);
-  clinical.confidence = clampScore(clinical.confidence);
+  clinical.risk_score = clamp01(clinical.risk_score);
+  clinical.confidence = clamp01(clinical.confidence);
   if (!Array.isArray(clinical.flags)) clinical.flags = [];
 
-  boundary.violation_score = clampScore(boundary.violation_score);
-  boundary.confidence = clampScore(boundary.confidence);
+  boundary.violation_score = clamp01(boundary.violation_score);
+  boundary.confidence = clamp01(boundary.confidence);
   if (!Array.isArray(boundary.flags)) boundary.flags = [];
 
-  regulation.dysregulation_risk = clampScore(regulation.dysregulation_risk);
-  regulation.confidence = clampScore(regulation.confidence);
+  regulation.dysregulation_risk = clamp01(regulation.dysregulation_risk);
+  regulation.confidence = clamp01(regulation.confidence);
   if (!Array.isArray(regulation.flags)) regulation.flags = [];
 
-  escalation.confidence = clampScore(escalation.confidence);
+  escalation.confidence = clamp01(escalation.confidence);
 
   // Validate escalation_level to prevent NaN propagation in decision engine
-  const VALID_LEVELS = ["LEVEL_0", "LEVEL_1", "LEVEL_2", "LEVEL_3", "LEVEL_4"];
-  if (!VALID_LEVELS.includes(escalation.escalation_level)) {
+  const VALID_LEVELS = new Set([
+    "LEVEL_0",
+    "LEVEL_1",
+    "LEVEL_2",
+    "LEVEL_3",
+    "LEVEL_4",
+  ]);
+  if (!VALID_LEVELS.has(escalation.escalation_level)) {
     console.error(
       "[pipeline] Malformed escalation_level, defaulting to LEVEL_0:",
       escalation.escalation_level,
@@ -421,7 +424,8 @@ async function rewriteIfNeeded(
 
 function buildSafeTemplateRewrite(decision: DecisionResult): RewriteResult {
   const escalationLevel = decision.agent_reports.escalation.escalation_level;
-  const templates = SAFE_TEMPLATES[escalationLevel];
+  const templates =
+    SAFE_TEMPLATES[escalationLevel] ?? SAFE_TEMPLATES["LEVEL_0"];
   const template = templates[Math.floor(Math.random() * templates.length)];
 
   return {

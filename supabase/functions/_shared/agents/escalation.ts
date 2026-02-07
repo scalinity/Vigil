@@ -4,7 +4,8 @@
 // identifies risk type and imminence, and specifies crisis protocol.
 
 import type { ContextPayload, EscalationReport } from "../types.ts";
-import { callClaude } from "../claude-client.ts";
+import { callClaude, MODEL_OPUS } from "../claude-client.ts";
+import { buildSystemPrompt, formatUserMessage } from "../context-assembly.ts";
 
 const SYSTEM_PROMPT = `You are a crisis escalation specialist embedded in Vigil, a real-time safety middleware for AI therapy conversations. Your sole responsibility is to determine when a therapeutic conversation exceeds the safe boundaries of AI-only interaction and requires human intervention.
 
@@ -312,20 +313,13 @@ export async function runEscalationAgent(
   context: ContextPayload,
 ): Promise<EscalationReport> {
   try {
-    const userMessage = JSON.stringify(
-      {
-        user_message: context.user_message,
-        ai_response: context.ai_response,
-        conversation_history: context.conversation_history,
-        session_metadata: context.session_metadata,
-      },
-      null,
-      2,
-    );
+    const userMessage = formatUserMessage(context);
+
+    const systemPrompt = buildSystemPrompt(SYSTEM_PROMPT, "escalation");
 
     return await callClaude<EscalationReport>(
-      "claude-opus-4-6",
-      SYSTEM_PROMPT,
+      MODEL_OPUS,
+      systemPrompt,
       userMessage,
       2000,
     );
@@ -334,17 +328,20 @@ export async function runEscalationAgent(
       "[escalation] Agent error:",
       error instanceof Error ? error.message : "Unknown error",
     );
-    // Return LEVEL_0 with zero confidence — this triggers ASK_HUMAN
-    // in the decision engine since confidence < UNCERTAINTY_THRESHOLD
-    // and escalation_level === "LEVEL_0"
+    // Return LEVEL_1 with zero confidence — fail-safe escalation.
+    // Per spec: "when uncertain, escalate UP, not down."
+    // LEVEL_1 ensures the decision engine applies a minimum REWRITE override
+    // rather than potentially PASSing with LEVEL_0 + ASK_HUMAN (which has no
+    // human in the loop at runtime).
     return {
-      escalation_level: "LEVEL_0",
+      escalation_level: "LEVEL_1",
       confidence: 0.0,
       risk_type: "other",
       imminence: "uncertain",
       evidence:
         "Escalation agent encountered an error and could not complete assessment.",
-      protocol: "Agent error — manual review required.",
+      protocol:
+        "Agent error — escalated to LEVEL_1 as fail-safe. Manual review required.",
       human_handoff_recommended: false,
     };
   }

@@ -5,7 +5,7 @@
 
 import type { ContextPayload, TriageResult } from "../types.ts";
 import { TRIAGE_THRESHOLD } from "../types.ts";
-import { callClaude } from "../claude-client.ts";
+import { callClaude, MODEL_HAIKU } from "../claude-client.ts";
 
 const TRIAGE_SYSTEM_PROMPT = `You are a safety pre-screen for AI therapy conversations. You analyze a (user_message, ai_response) pair and determine whether it needs deeper review by a team of specialist safety agents.
 
@@ -173,7 +173,7 @@ session_metadata: ${JSON.stringify(session_metadata)}`;
   // Call Haiku for fast triage classification
   try {
     const result = await callClaude<TriageResult>(
-      "claude-3-5-haiku-20241022",
+      MODEL_HAIKU,
       TRIAGE_SYSTEM_PROMPT,
       userMessage,
       500,

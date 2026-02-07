@@ -5,7 +5,6 @@ import type {
   AgentReports,
   DecisionResult,
   VigilDecisionType,
-  EscalationLevel,
 } from "./types.ts";
 
 import {
@@ -24,7 +23,7 @@ import {
 } from "./types.ts";
 
 /** Clamp a number to [0.0, 1.0]. Treats NaN/undefined as 0. */
-function clamp01(value: number): number {
+export function clamp01(value: number): number {
   if (typeof value !== "number" || isNaN(value)) return 0;
   return Math.max(0, Math.min(1, value));
 }
@@ -132,6 +131,10 @@ export function computeDecision(reports: AgentReports): DecisionResult {
   }
 
   // LEVEL_1 -> minimum REWRITE (ensure elevated risk is never PASSed)
+  // NOTE: Intentional deviation from spec 06 which only defines overrides for
+  // LEVEL_2+. This is a safety-conservative addition: any escalation signal
+  // (even low-level) should trigger at least a REWRITE rather than PASS.
+  // Without this, a LEVEL_1 escalation with low agent scores could slip through.
   if (
     escalation.escalation_level === "LEVEL_1" &&
     DECISION_SEVERITY[decision] < DECISION_SEVERITY["REWRITE"]
