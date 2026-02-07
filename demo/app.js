@@ -446,7 +446,7 @@ function renderResults(result, clientLatency) {
   // Score pills
   els.scorePills.innerHTML = `
     <span class="px-2 py-0.5 rounded ${getScoreBg(result.final_score)}">Score: ${result.final_score.toFixed(3)}</span>
-    <span class="px-2 py-0.5 rounded bg-vigil-card border border-vigil-border">Flags: ${result.flag_count}</span>
+    <span class="px-2 py-0.5 rounded bg-vigil-card border border-vigil-border">Flags: ${typeof result.flag_count === "number" ? result.flag_count : 0}</span>
   `;
 
   // --- Decision Summary Card ---
@@ -915,8 +915,8 @@ function renderDecisionMath(result) {
     <div class="text-gray-400">final_score   = <span class="text-white">${result.final_score.toFixed(3)}</span> <span class="text-gray-600">= min(1.0, ${result.peak_score.toFixed(3)} + ${result.breadth_bonus.toFixed(3)})</span></div>
     <div class="text-gray-400">confidence    = <span class="text-white">${result.confidence.toFixed(3)}</span></div>
     <div class="text-gray-400 mt-1">threshold     = <span class="text-white">${getThresholdExplanation(result.final_score, result.decision)}</span></div>
-    ${result.escalation_level !== "LEVEL_0" ? `<div class="text-gray-400">escalation    = <span class="text-white">${result.escalation_level}</span> <span class="text-gray-600">(override applied)</span></div>` : ""}
-    <div class="text-gray-400 mt-1 pt-1 border-t border-vigil-border">decision      = <span class="font-bold ${getDecisionColor(result.decision)}">${result.decision}</span></div>
+    ${result.escalation_level !== "LEVEL_0" ? `<div class="text-gray-400">escalation    = <span class="text-white">${escapeHtml(result.escalation_level)}</span> <span class="text-gray-600">(override applied)</span></div>` : ""}
+    <div class="text-gray-400 mt-1 pt-1 border-t border-vigil-border">decision      = <span class="font-bold ${getDecisionColor(result.decision)}">${escapeHtml(result.decision)}</span></div>
   `;
 }
 
@@ -1042,7 +1042,7 @@ function updateAuditTrailDisplay() {
   els.auditInlinePreview.innerHTML = auditTrail
     .map(
       (e) => `
-    <span class="audit-mini-badge ${getBadgeClass(e.decision)}">#${e.index} ${e.decision} (${e.score.toFixed(2)})</span>
+    <span class="audit-mini-badge ${getBadgeClass(e.decision)}">#${e.index} ${escapeHtml(e.decision)} (${e.score.toFixed(2)})</span>
   `,
     )
     .join("");
@@ -1064,10 +1064,10 @@ function updateAuditTrailDisplay() {
   );
   row.innerHTML = `
     <td class="p-2 pl-4 text-gray-500">${newRow.index}</td>
-    <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${getBadgeClass(newRow.decision)}">${newRow.decision}</span></td>
+    <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${getBadgeClass(newRow.decision)}">${escapeHtml(newRow.decision)}</span></td>
     <td class="p-2 font-mono ${getScoreColor(newRow.score)}">${newRow.score.toFixed(3)}</td>
     <td class="p-2 font-mono text-gray-400">${newRow.confidence.toFixed(2)}</td>
-    <td class="p-2 text-gray-400">${newRow.flagCount}</td>
+    <td class="p-2 text-gray-400">${typeof newRow.flagCount === "number" ? newRow.flagCount : 0}</td>
     <td class="p-2 text-gray-500">${(newRow.latency / 1000).toFixed(1)}s</td>
     <td class="p-2 text-gray-500 truncate max-w-[150px]">${escapeHtml(newRow.scenarioName)}</td>
   `;
