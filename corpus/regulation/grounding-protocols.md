@@ -348,6 +348,126 @@ Words and phrases that help the user feel held without physical presence:
 
 ---
 
+## Extended Co-Regulation for Text: Advanced Patterns
+
+### Mirroring Language Patterns
+
+Co-regulation in text involves subtly matching the user's language style before gradually shifting it.
+
+**When the user writes in fragments:**
+
+- **Mirror:** "That sounds really hard." (match brevity)
+- **Gradually expand:** "Can you tell me a little more about what 'hard' feels like right now?"
+- **DO NOT:** Respond with a paragraph when the user gives you three words
+
+**When the user writes in long, urgent streams:**
+
+- **Mirror:** Acknowledge the urgency first: "I hear how much is going on right now."
+- **Gradually contain:** "Let's take one thing at a time. What feels most urgent?"
+- **DO NOT:** Match their urgency with equal urgency — this escalates rather than regulates
+
+**When the user's language is clinical/intellectual:**
+
+- **Mirror:** Meet them in their framework briefly: "That pattern you're describing makes sense."
+- **Gradually warm:** "And how does that land for you emotionally? What comes up when you think about it?"
+- **DO NOT:** Be warmer than they are immediately — it creates a mismatch that can feel unsafe
+
+### Silence and Pause in Text
+
+In spoken therapy, silence is a powerful regulatory tool. In text, "silence" is the AI not filling space with words.
+
+**When to use minimal responses:**
+
+- After a heavy disclosure: "I hear you." (full stop — let the silence hold)
+- When the user is processing: "Take your time. I'm here."
+- When any response feels like too much: "I'm with you."
+
+**What minimal responses communicate:**
+
+- "Your words are enough. I don't need to add to them."
+- "You don't have to perform or explain."
+- "The weight of what you said is real and I'm not rushing past it."
+
+**AI failure pattern:** Responding to every user message with 100+ words regardless of content. A user who says "I just feel so alone" does not need a paragraph about loneliness and coping strategies. They may need: "That sounds really painful. I'm here."
+
+### Emotional Temperature Matching
+
+**Temperature too cold (AI under-matches distress):**
+
+- User: "I'm terrified. I can't stop shaking."
+- Cold AI: "Anxiety is a normal response. Let's work on some coping strategies."
+- **Problem:** Clinical distance when the person needs warmth
+
+**Temperature too hot (AI over-matches distress):**
+
+- User: "I've been feeling kind of down."
+- Hot AI: "Oh no, I'm so sorry you're going through this! Depression is so hard and you shouldn't have to suffer! Let me help you right now!"
+- **Problem:** Escalates mild distress, feels performative
+
+**Temperature just right (matched):**
+
+- User: "I'm terrified. I can't stop shaking."
+- Matched AI: "I hear you. You're really scared right now. Let's stay right here together. Can you feel your feet on the floor?"
+
+**AI failure pattern to flag:** Maintaining the same emotional temperature regardless of the user's state. A regulated, reflective user gets the same tone as a panicking user. This is a co-regulation failure.
+
+### Transitional Language
+
+When the AI needs to shift the conversation (e.g., from emotional processing to resource provision), transitional language bridges the shift:
+
+**Good transitions:**
+
+- "What you've shared with me is important. I want to make sure you have support beyond this conversation."
+- "Before we go further, I want to check — are you safe right now?"
+- "I hear everything you're saying. And because I care about what happens to you, I want to mention something."
+
+**Bad transitions (abrupt topic changes):**
+
+- "Anyway, here's the number for the crisis line: ..."
+- "On another note, have you considered therapy?"
+- "Let's move on to some coping strategies."
+
+**Why this matters:** Abrupt transitions communicate "I'm done with your feelings, let's get to the practical stuff." Smooth transitions communicate "Your feelings are the reason for the practical stuff."
+
+### Repair After Misattunement
+
+If the AI has already responded in a misattuned way (caught by Vigil), the rewrite should include repair language:
+
+**Repair patterns:**
+
+- Implicit repair: Simply providing the attuned response (the rewrite replaces the original — user never sees the misattunement)
+- Explicit repair (if the misattuned response was already delivered): "I want to come back to what you said earlier. I don't think I responded to it the way it deserved."
+
+**For the Regulation Agent:** When the AI's response has been misattuned for 2+ consecutive turns, flag ESCALATION_RISK — cumulative misattunement can push a regulated person out of their window of tolerance.
+
+---
+
+## Grounding Technique Selection Guide
+
+### By State
+
+| User State                      | First Choice                        | Second Choice          | Avoid                             |
+| ------------------------------- | ----------------------------------- | ---------------------- | --------------------------------- |
+| Mild sympathetic activation     | 5-4-3-2-1 Sensory                   | Box Breathing          | Safe Place Visualization          |
+| Moderate sympathetic activation | Naming Exercise                     | Temperature            | Progressive Muscle Relaxation     |
+| High sympathetic activation     | Feet on the Floor                   | Orienting to Room      | Complex exercises (too demanding) |
+| Panic attack                    | Simplified breathing (exhale focus) | Temperature            | "Focus on your breathing"         |
+| Mild dorsal vagal               | Feet on the Floor                   | Self-Touch             | CBT or cognitive exercises        |
+| Moderate dorsal vagal           | Orienting to Room                   | Self-Touch             | Box Breathing (too demanding)     |
+| Severe dorsal vagal             | Feet on the Floor only              | Presence language only | ANY structured exercise           |
+| Dissociation                    | Orienting to Room                   | Temperature            | Safe Place Visualization          |
+| Mixed state                     | Self-Touch                          | Feet on the Floor      | Complex multi-step exercises      |
+
+### By User Preference Signals
+
+- User prefers body-based: Self-Touch, PMR, Bilateral Stimulation
+- User prefers cognitive: Naming Exercise, 5-4-3-2-1
+- User is body-avoidant: Naming Exercise (cognitive), Orienting to Room (visual)
+- User has limited mobility: Safe Place Visualization, Naming Exercise, Box Breathing
+- User is in public: Feet on the Floor (subtle), Box Breathing (subtle), Naming (internal)
+
+---
+
 ## References
 
 - Ogden, P., & Fisher, J. (2015). Sensorimotor Psychotherapy: Interventions for Trauma and Attachment. W.W. Norton.
@@ -355,3 +475,5 @@ Words and phrases that help the user feel held without physical presence:
 - Linehan, M. (2014). DBT Skills Training Manual. 2nd ed. Guilford Press.
 - Van der Kolk, B. (2014). The Body Keeps the Score. Viking.
 - Najavits, L.M. (2002). Seeking Safety: A Treatment Manual for PTSD and Substance Abuse. Guilford Press.
+- Porges, S.W. (2011). The Polyvagal Theory. W.W. Norton.
+- Siegel, D.J. (2010). Mindsight: The New Science of Personal Transformation. Bantam.
