@@ -27,11 +27,11 @@
 </head>
 <body class="h-full bg-vigil-dark text-gray-100 font-mono">
   <!-- Header -->
-  <header class="border-b border-vigil-border px-6 py-4 flex items-center justify-between">
+  <header class="border-b border-vigil-border px-6 py-3 flex items-center justify-between">
     <div class="flex items-center gap-4">
       <h1 class="text-xl font-bold tracking-tight">
         <span class="text-red-500">VIGIL</span>
-        <span class="text-gray-400 text-sm ml-2">Real-Time Safety Middleware</span>
+        <span class="text-gray-400 text-sm ml-2">AI Therapy Safety Infrastructure</span>
       </h1>
     </div>
     <div class="flex items-center gap-4">
@@ -40,128 +40,226 @@
         <input id="supabase-url" type="text" placeholder="https://xxx.supabase.co"
           class="bg-vigil-card border border-vigil-border rounded px-2 py-1 text-xs w-56 text-gray-300 focus:border-blue-500 focus:outline-none">
         <label class="text-xs text-gray-400">Anon Key</label>
-        <input id="supabase-key" type="password" placeholder="eyJ..."
+        <input id="supabase-key" type="password" placeholder="eyJ..." autocomplete="off"
           class="bg-vigil-card border border-vigil-border rounded px-2 py-1 text-xs w-40 text-gray-300 focus:border-blue-500 focus:outline-none">
-        <button id="btn-save-config" class="text-xs bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded">Save</button>
+        <button id="btn-save-config" class="text-xs bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded transition-colors">Save</button>
       </div>
     </div>
   </header>
 
   <!-- Main Content -->
-  <main class="flex h-[calc(100vh-65px)]">
-    <!-- Left Panel: Input -->
-    <div class="w-1/2 border-r border-vigil-border flex flex-col">
-      <!-- Scenario Selector -->
-      <div class="p-4 border-b border-vigil-border">
-        <label class="text-xs text-gray-400 uppercase tracking-wider mb-2 block">Scenario</label>
-        <select id="scenario-select"
-          class="w-full bg-vigil-card border border-vigil-border rounded px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none">
-          <option value="">Select a scenario...</option>
-        </select>
-        <p id="scenario-desc" class="text-xs text-gray-500 mt-2 min-h-[20px]"></p>
+  <main class="flex flex-col" style="height: calc(100vh - 53px);">
+    <div class="flex flex-1 min-h-0">
+      <!-- Left Panel: Therapy Chat -->
+      <div class="w-1/2 border-r border-vigil-border flex flex-col">
+        <!-- Scenario Selector -->
+        <div class="p-4 border-b border-vigil-border">
+          <div class="flex items-center gap-3">
+            <div class="flex-1">
+              <label class="text-xs text-gray-400 uppercase tracking-wider mb-1.5 block">Scenario</label>
+              <select id="scenario-select" aria-label="Select demo scenario"
+                class="w-full bg-vigil-card border border-vigil-border rounded px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none cursor-pointer">
+                <option value="">Select a scenario...</option>
+              </select>
+            </div>
+            <div class="pt-5">
+              <button id="btn-review"
+                class="bg-red-600 hover:bg-red-700 disabled:bg-gray-700 disabled:text-gray-500 font-semibold py-2 px-5 rounded text-sm transition-colors whitespace-nowrap"
+                disabled>
+                Run Analysis
+              </button>
+            </div>
+          </div>
+          <p id="scenario-desc" class="text-xs text-gray-500 mt-2 min-h-[20px]"></p>
+        </div>
+
+        <!-- Conversation Display -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-3" id="conversation-pane">
+          <!-- History messages rendered here -->
+        </div>
+
+        <!-- Current Exchange -->
+        <div class="p-4 border-t border-vigil-border space-y-3" id="current-exchange">
+          <div>
+            <label class="text-xs text-gray-400 uppercase tracking-wider mb-1 block">Patient</label>
+            <div id="user-message" class="bg-blue-900/20 border border-blue-800/30 rounded-xl rounded-br p-3 text-sm text-blue-100 min-h-[50px]"></div>
+          </div>
+          <div id="original-response-container">
+            <label class="text-xs text-gray-400 uppercase tracking-wider mb-1 block">AI Therapist <span id="original-label-badge" class="hidden text-[10px] px-1.5 py-0.5 rounded ml-1">(Original)</span></label>
+            <div id="ai-response" class="bg-slate-800/50 border border-slate-700/30 rounded-xl rounded-bl p-3 text-sm text-gray-200 min-h-[50px] relative transition-all duration-300"></div>
+          </div>
+          <!-- Corrected Response (hidden initially) -->
+          <div id="corrected-response-container" class="hidden">
+            <label class="text-xs uppercase tracking-wider mb-1 flex items-center gap-2">
+              <span id="corrected-label" class="text-green-400">AI Therapist (Vigil-Corrected)</span>
+              <span id="corrected-badge" class="text-[10px] px-2 py-0.5 rounded-full font-bold"></span>
+            </label>
+            <div id="corrected-response" class="border-l-4 border-green-500 bg-green-900/10 border border-green-800/20 rounded-xl rounded-bl p-3 text-sm text-green-100 corrected-response-enter"></div>
+          </div>
+          <!-- Pass Badge (hidden initially) -->
+          <div id="pass-badge-container" class="hidden">
+            <div class="flex items-center gap-2 text-green-400 text-xs">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Passed Safety Review</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Conversation Display -->
-      <div class="flex-1 overflow-y-auto p-4 space-y-3" id="conversation-pane">
-        <!-- History messages rendered here -->
-      </div>
+      <!-- Right Panel: Vigil Analysis -->
+      <div class="w-1/2 flex flex-col overflow-hidden">
+        <!-- Status Bar -->
+        <div id="status-bar" class="p-3 border-b border-vigil-border flex items-center justify-between min-h-[48px]" role="status" aria-live="polite">
+          <div class="flex items-center gap-3">
+            <div id="decision-badge" class="hidden decision-badge-enter"></div>
+            <span id="latency-display" class="text-xs text-gray-500"></span>
+          </div>
+          <div id="score-pills" class="flex gap-2 text-xs"></div>
+        </div>
 
-      <!-- Current Exchange -->
-      <div class="p-4 border-t border-vigil-border space-y-3">
-        <div>
-          <label class="text-xs text-gray-400 uppercase tracking-wider mb-1 block">User Message</label>
-          <div id="user-message" class="bg-blue-900/20 border border-blue-800/30 rounded p-3 text-sm text-blue-100 min-h-[60px]"></div>
+        <!-- Loading State -->
+        <div id="loading-state" class="hidden flex-1 flex items-center justify-center" role="alert" aria-live="assertive">
+          <div class="text-center">
+            <div class="relative w-16 h-16 mx-auto mb-4">
+              <div class="absolute inset-0 border-2 border-red-500/20 rounded-full"></div>
+              <div class="absolute inset-0 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+              <div class="absolute inset-2 border-2 border-amber-500/20 rounded-full"></div>
+              <div class="absolute inset-2 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+            </div>
+            <p class="text-sm text-gray-400">Running safety analysis...</p>
+            <p id="loading-detail" class="text-xs text-gray-600 mt-1">4 agents reviewing in parallel</p>
+          </div>
         </div>
-        <div>
-          <label class="text-xs text-gray-400 uppercase tracking-wider mb-1 block">AI Response (Under Review)</label>
-          <div id="ai-response" class="bg-red-900/20 border border-red-800/30 rounded p-3 text-sm text-red-100 min-h-[60px]"></div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="flex-1 flex items-center justify-center">
+          <div class="text-center text-gray-600">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-vigil-border flex items-center justify-center">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            </div>
+            <p class="text-lg mb-1">No review results yet</p>
+            <p class="text-sm">Select a scenario and click "Run Analysis"</p>
+            <p class="text-xs mt-3 text-gray-700">Keyboard: 1-6 select scenario, Enter runs analysis</p>
+          </div>
         </div>
-        <button id="btn-review"
-          class="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-700 disabled:text-gray-500 font-semibold py-2.5 rounded text-sm transition-colors"
-          disabled>
-          Run Vigil Review
-        </button>
+
+        <!-- Results -->
+        <div id="results-container" class="hidden flex-1 p-4 space-y-4 overflow-y-auto">
+          <!-- Decision Summary Card -->
+          <section id="decision-summary-card" class="bg-vigil-card border border-vigil-border rounded-lg p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div id="decision-badge-large" class="px-4 py-2 rounded-lg text-sm font-bold uppercase tracking-wider"></div>
+              <div id="status-message" class="text-xs text-gray-400"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 text-xs">
+              <div class="bg-vigil-dark/50 rounded p-2">
+                <div class="text-gray-500 mb-0.5">Risk Score</div>
+                <div id="summary-score" class="text-lg font-bold font-mono"></div>
+              </div>
+              <div class="bg-vigil-dark/50 rounded p-2">
+                <div class="text-gray-500 mb-0.5">Confidence</div>
+                <div id="summary-confidence" class="text-lg font-bold font-mono text-gray-200"></div>
+              </div>
+              <div class="bg-vigil-dark/50 rounded p-2">
+                <div class="text-gray-500 mb-0.5">Peak Agent Score</div>
+                <div id="summary-peak" class="text-sm font-mono text-gray-300"></div>
+              </div>
+              <div class="bg-vigil-dark/50 rounded p-2">
+                <div class="text-gray-500 mb-0.5">Breadth Bonus</div>
+                <div id="summary-breadth" class="text-sm font-mono text-gray-300"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Agent Scores -->
+          <section>
+            <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Agent Reports</h3>
+            <div id="agent-scores" class="space-y-3"></div>
+          </section>
+
+          <!-- Flags -->
+          <section id="flags-section" class="hidden">
+            <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Flags Detected</h3>
+            <div id="flags-list" class="space-y-1"></div>
+          </section>
+
+          <!-- Changes Made -->
+          <section id="changes-section" class="hidden">
+            <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Changes Made</h3>
+            <div id="changes-list" class="space-y-2"></div>
+          </section>
+
+          <!-- Conflict Resolutions -->
+          <section id="conflicts-section" class="hidden">
+            <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Conflict Resolutions</h3>
+            <div id="conflicts-list" class="space-y-2"></div>
+          </section>
+
+          <!-- Decision Math -->
+          <section>
+            <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Decision Math</h3>
+            <div id="decision-math" class="bg-vigil-card border border-vigil-border rounded p-4 text-xs font-mono space-y-1"></div>
+          </section>
+
+          <!-- Expected vs Actual -->
+          <section id="comparison-section">
+            <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Expected vs Actual</h3>
+            <div id="comparison-table" class="bg-vigil-card border border-vigil-border rounded overflow-hidden"></div>
+          </section>
+
+          <!-- Audit Record -->
+          <section>
+            <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Audit Record</h3>
+            <div class="flex items-center gap-2">
+              <span id="audit-id" class="text-xs text-gray-500 font-mono"></span>
+              <button id="btn-view-audit" class="text-xs text-blue-400 hover:text-blue-300 hidden transition-colors">View Full Record</button>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
 
-    <!-- Right Panel: Results -->
-    <div class="w-1/2 flex flex-col overflow-y-auto">
-      <!-- Status Bar -->
-      <div id="status-bar" class="p-4 border-b border-vigil-border flex items-center justify-between">
+    <!-- Audit Trail Panel -->
+    <div id="audit-trail-panel" class="border-t border-vigil-border bg-vigil-dark">
+      <!-- Collapsed view -->
+      <div id="audit-trail-header" class="px-4 py-2 flex items-center justify-between cursor-pointer hover:bg-vigil-card/30 transition-colors">
         <div class="flex items-center gap-3">
-          <div id="decision-badge" class="hidden px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"></div>
-          <span id="latency-display" class="text-xs text-gray-500"></span>
+          <span class="text-xs text-gray-400 uppercase tracking-wider">Audit Trail</span>
+          <span id="audit-count-badge" class="text-[10px] bg-vigil-card border border-vigil-border px-2 py-0.5 rounded-full text-gray-500">0 records</span>
         </div>
-        <div id="score-pills" class="flex gap-2 text-xs"></div>
-      </div>
-
-      <!-- Loading State -->
-      <div id="loading-state" class="hidden flex-1 flex items-center justify-center">
-        <div class="text-center">
-          <div class="inline-block w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mb-3"></div>
-          <p class="text-sm text-gray-400">Running safety analysis...</p>
-          <p id="loading-detail" class="text-xs text-gray-600 mt-1">4 agents reviewing in parallel</p>
+        <div class="flex items-center gap-4">
+          <div id="audit-inline-preview" class="flex gap-2 overflow-x-auto max-w-[600px] scrollbar-hide"></div>
+          <button id="btn-toggle-audit" class="text-xs text-gray-500 hover:text-gray-300 transition-colors">
+            <svg id="audit-chevron" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+          </button>
         </div>
       </div>
-
-      <!-- Empty State -->
-      <div id="empty-state" class="flex-1 flex items-center justify-center">
-        <div class="text-center text-gray-600">
-          <p class="text-lg mb-2">No review results yet</p>
-          <p class="text-sm">Select a scenario and click "Run Vigil Review"</p>
-        </div>
-      </div>
-
-      <!-- Results -->
-      <div id="results-container" class="hidden flex-1 p-4 space-y-4 overflow-y-auto">
-        <!-- Final Response -->
-        <section>
-          <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Final Response</h3>
-          <div id="final-response" class="bg-vigil-card border border-vigil-border rounded p-4 text-sm leading-relaxed whitespace-pre-wrap"></div>
-        </section>
-
-        <!-- Flags -->
-        <section id="flags-section" class="hidden">
-          <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Flags Detected</h3>
-          <div id="flags-list" class="flex flex-wrap gap-2"></div>
-        </section>
-
-        <!-- Agent Scores -->
-        <section>
-          <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Agent Scores</h3>
-          <div id="agent-scores" class="grid grid-cols-2 gap-3"></div>
-        </section>
-
-        <!-- Decision Math -->
-        <section>
-          <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Decision Math</h3>
-          <div id="decision-math" class="bg-vigil-card border border-vigil-border rounded p-4 text-xs font-mono space-y-1"></div>
-        </section>
-
-        <!-- Expected vs Actual -->
-        <section id="comparison-section">
-          <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Expected vs Actual</h3>
-          <div id="comparison-table" class="bg-vigil-card border border-vigil-border rounded overflow-hidden"></div>
-        </section>
-
-        <!-- Audit Record -->
-        <section>
-          <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Audit Record</h3>
-          <div class="flex items-center gap-2">
-            <span id="audit-id" class="text-xs text-gray-500 font-mono"></span>
-            <button id="btn-view-audit" class="text-xs text-blue-400 hover:text-blue-300 hidden">View Full Record</button>
-          </div>
-        </section>
+      <!-- Expanded view -->
+      <div id="audit-trail-body" class="hidden border-t border-vigil-border overflow-y-auto" style="max-height: 200px;">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="border-b border-vigil-border text-gray-500">
+              <th class="text-left p-2 pl-4 font-normal w-8">#</th>
+              <th class="text-left p-2 font-normal">Decision</th>
+              <th class="text-left p-2 font-normal">Score</th>
+              <th class="text-left p-2 font-normal">Confidence</th>
+              <th class="text-left p-2 font-normal">Flags</th>
+              <th class="text-left p-2 font-normal">Latency</th>
+              <th class="text-left p-2 font-normal">Scenario</th>
+            </tr>
+          </thead>
+          <tbody id="audit-trail-rows"></tbody>
+        </table>
       </div>
     </div>
   </main>
 
   <!-- Audit Detail Modal -->
-  <div id="audit-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-    <div class="bg-vigil-card border border-vigil-border rounded-lg max-w-4xl max-h-[80vh] w-full mx-4 overflow-hidden flex flex-col">
+  <div id="audit-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="audit-modal-title">
+    <div class="bg-vigil-card border border-vigil-border rounded-lg max-w-4xl max-h-[80vh] w-full mx-4 overflow-hidden flex flex-col shadow-2xl">
       <div class="p-4 border-b border-vigil-border flex items-center justify-between">
-        <h3 class="text-sm font-semibold">Full Audit Record</h3>
-        <button id="btn-close-modal" class="text-gray-400 hover:text-white">&times;</button>
+        <h3 id="audit-modal-title" class="text-sm font-semibold">Full Audit Record</h3>
+        <button id="btn-close-modal" class="text-gray-400 hover:text-white text-xl leading-none" aria-label="Close audit record modal">&times;</button>
       </div>
       <div class="p-4 overflow-y-auto flex-1">
         <pre id="audit-json" class="text-xs text-gray-300 whitespace-pre-wrap break-words"></pre>
