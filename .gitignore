@@ -31,3 +31,6 @@ build/
 
 # Debug logs
 *.log
+
+# Specs - internal design docs
+Specs/
