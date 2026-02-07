@@ -38,6 +38,9 @@ let supabaseKey = sessionStorage.getItem("vigil_supabase_key") || "";
 let auditTrail = []; // Accumulated audit entries across scenarios
 let lastFullResult = null; // Last full audit record for modal
 let isAuditExpanded = false;
+let activeReviewController = null; // AbortController for in-flight review
+let activeAuditFetchId = null; // Track which audit fetch is current
+const MAX_AUDIT_ENTRIES = 50;
 
 // ============================================================
 // DOM Elements
@@ -325,19 +328,31 @@ function updateReviewButton() {
 async function runReview() {
   if (!currentScenario || !supabaseUrl || !supabaseKey) return;
 
+  // Cancel any in-flight review
+  if (activeReviewController) {
+    activeReviewController.abort();
+  }
+  activeReviewController = new AbortController();
+  const signal = activeReviewController.signal;
+  const reviewScenario = currentScenario; // Capture at call time
+
   showLoadingState();
   els.btnReview.disabled = true;
+  els.scenarioSelect.disabled = true;
   els.btnReview.textContent = "Reviewing...";
   resetCorrectedResponse();
   els.aiResponse.classList.remove("response-struck");
 
   const startTime = Date.now();
-  const sessionIdOverride = `demo-${Date.now()}`;
+  const sessionIdOverride = `demo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
   const payload = {
-    ...currentScenario.input,
+    ...reviewScenario.input,
     session_id: sessionIdOverride,
   };
+
+  // Timeout after 30s
+  const timeoutId = setTimeout(() => activeReviewController.abort(), 30000);
 
   try {
     const res = await fetch(`${supabaseUrl}/functions/v1/vigil-review`, {
@@ -347,7 +362,10 @@ async function runReview() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
+      signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!res.ok) {
       const err = await res
@@ -359,8 +377,11 @@ async function runReview() {
     const result = await res.json();
     const clientLatency = Date.now() - startTime;
 
+    // Discard if scenario changed during fetch
+    if (currentScenario !== reviewScenario) return;
+
     // Add to audit trail
-    addAuditEntry(result, currentScenario);
+    addAuditEntry(result, reviewScenario);
 
     // Render results with animations
     renderResults(result, clientLatency);
@@ -368,9 +389,16 @@ async function runReview() {
     // Try to fetch full audit record for enriched details
     fetchAuditForDetails(result.audit_id, result);
   } catch (error) {
-    showError(error.message);
+    clearTimeout(timeoutId);
+    if (error.name === "AbortError") {
+      showError("Analysis timed out. The pipeline may be overloaded.");
+    } else {
+      showError(error.message);
+    }
   } finally {
+    activeReviewController = null;
     els.btnReview.disabled = false;
+    els.scenarioSelect.disabled = false;
     els.btnReview.textContent = "Run Analysis";
     updateReviewButton();
   }
@@ -674,12 +702,14 @@ function renderAgentCards(reports, decision) {
 
   els.agentScores.innerHTML = cards.join("");
 
-  // Animate score bars after cards are in DOM (single rAF, no nested setTimeout)
+  // Double rAF ensures browser has painted initial 0% state before transitioning
   requestAnimationFrame(() => {
-    const bars = els.agentScores.querySelectorAll(".score-bar-fill");
-    bars.forEach((bar) => {
-      const target = bar.dataset.targetWidth;
-      if (target) bar.style.width = target;
+    requestAnimationFrame(() => {
+      const bars = els.agentScores.querySelectorAll(".score-bar-fill");
+      bars.forEach((bar) => {
+        const target = bar.dataset.targetWidth;
+        if (target) bar.style.width = target;
+      });
     });
   });
 
@@ -781,6 +811,9 @@ async function fetchAuditForDetails(auditId, summaryResult) {
     return;
   }
 
+  // Track this fetch so stale responses are discarded
+  activeAuditFetchId = auditId;
+
   try {
     const res = await fetch(
       `${supabaseUrl}/functions/v1/vigil-review?id=${encodeURIComponent(auditId)}`,
@@ -789,6 +822,10 @@ async function fetchAuditForDetails(auditId, summaryResult) {
       },
     );
     if (!res.ok) return;
+
+    // Discard if a newer fetch has started
+    if (activeAuditFetchId !== auditId) return;
+
     const audit = await res.json();
     lastFullResult = audit;
 
@@ -1030,6 +1067,14 @@ function addAuditEntry(result, scenario) {
     scenario: scenario,
   };
   auditTrail.push(entry);
+
+  // Evict oldest entries if over limit
+  if (auditTrail.length > MAX_AUDIT_ENTRIES) {
+    auditTrail.shift();
+    auditTrail.forEach((e, i) => (e.index = i + 1));
+    rebuildAuditTrailTable();
+    return;
+  }
   updateAuditTrailDisplay();
 }
 
@@ -1073,6 +1118,44 @@ function updateAuditTrailDisplay() {
   `;
   // Click handled via event delegation in init()
   els.auditTrailRows.appendChild(row);
+}
+
+function rebuildAuditTrailTable() {
+  const count = auditTrail.length;
+  els.auditCountBadge.textContent = `${count} record${count !== 1 ? "s" : ""}`;
+
+  els.auditInlinePreview.innerHTML = auditTrail
+    .map(
+      (e) => `
+    <span class="audit-mini-badge ${getBadgeClass(e.decision)}">#${e.index} ${escapeHtml(e.decision)} (${e.score.toFixed(2)})</span>
+  `,
+    )
+    .join("");
+  els.auditInlinePreview.scrollLeft = els.auditInlinePreview.scrollWidth;
+
+  els.auditTrailRows.innerHTML = "";
+  auditTrail.forEach((entry, idx) => {
+    const row = document.createElement("tr");
+    row.className =
+      "border-b border-vigil-border/30 hover:bg-vigil-card/30 cursor-pointer";
+    row.dataset.index = idx;
+    row.setAttribute("tabindex", "0");
+    row.setAttribute("role", "button");
+    row.setAttribute(
+      "aria-label",
+      `Audit entry ${entry.index}: ${entry.scenarioName}, decision ${entry.decision}`,
+    );
+    row.innerHTML = `
+      <td class="p-2 pl-4 text-gray-500">${entry.index}</td>
+      <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${getBadgeClass(entry.decision)}">${escapeHtml(entry.decision)}</span></td>
+      <td class="p-2 font-mono ${getScoreColor(entry.score)}">${entry.score.toFixed(3)}</td>
+      <td class="p-2 font-mono text-gray-400">${entry.confidence.toFixed(2)}</td>
+      <td class="p-2 text-gray-400">${typeof entry.flagCount === "number" ? entry.flagCount : 0}</td>
+      <td class="p-2 text-gray-500">${(entry.latency / 1000).toFixed(1)}s</td>
+      <td class="p-2 text-gray-500 truncate max-w-[150px]">${escapeHtml(entry.scenarioName)}</td>
+    `;
+    els.auditTrailRows.appendChild(row);
+  });
 }
 
 function loadAuditEntry(index) {
