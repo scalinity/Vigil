@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vigil - Real-Time Safety Middleware for AI Therapy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'vigil-dark': '#0f172a',
+            'vigil-card': '#1e293b',
+            'vigil-border': '#334155',
+            'vigil-pass': '#22c55e',
+            'vigil-rewrite': '#f59e0b',
+            'vigil-block': '#ef4444',
+            'vigil-escalate': '#dc2626',
+            'vigil-ask': '#8b5cf6',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="h-full bg-vigil-dark text-gray-100 font-mono">
+  <!-- Header -->
+  <header class="border-b border-vigil-border px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <h1 class="text-xl font-bold tracking-tight">
+        <span class="text-red-500">VIGIL</span>
+        <span class="text-gray-400 text-sm ml-2">Real-Time Safety Middleware</span>
+      </h1>
+    </div>
+    <div class="flex items-center gap-4">
+      <div id="config-panel" class="flex items-center gap-3">
+        <label class="text-xs text-gray-400">Supabase URL</label>
+        <input id="supabase-url" type="text" placeholder="https://xxx.supabase.co"
+          class="bg-vigil-card border border-vigil-border rounded px-2 py-1 text-xs w-56 text-gray-300 focus:border-blue-500 focus:outline-none">
+        <label class="text-xs text-gray-400">Anon Key</label>
+        <input id="supabase-key" type="password" placeholder="eyJ..."
+          class="bg-vigil-card border border-vigil-border rounded px-2 py-1 text-xs w-40 text-gray-300 focus:border-blue-500 focus:outline-none">
+        <button id="btn-save-config" class="text-xs bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded">Save</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex h-[calc(100vh-65px)]">
+    <!-- Left Panel: Input -->
+    <div class="w-1/2 border-r border-vigil-border flex flex-col">
+      <!-- Scenario Selector -->
+      <div class="p-4 border-b border-vigil-border">
+        <label class="text-xs text-gray-400 uppercase tracking-wider mb-2 block">Scenario</label>
+        <select id="scenario-select"
+          class="w-full bg-vigil-card border border-vigil-border rounded px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none">
+          <option value="">Select a scenario...</option>
+        </select>
+        <p id="scenario-desc" class="text-xs text-gray-500 mt-2 min-h-[20px]"></p>
+      </div>
+
+      <!-- Conversation Display -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-3" id="conversation-pane">
+        <!-- History messages rendered here -->
+      </div>
+
+      <!-- Current Exchange -->
+      <div class="p-4 border-t border-vigil-border space-y-3">
+        <div>
+          <label class="text-xs text-gray-400 uppercase tracking-wider mb-1 block">User Message</label>
+          <div id="user-message" class="bg-blue-900/20 border border-blue-800/30 rounded p-3 text-sm text-blue-100 min-h-[60px]"></div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 uppercase tracking-wider mb-1 block">AI Response (Under Review)</label>
+          <div id="ai-response" class="bg-red-900/20 border border-red-800/30 rounded p-3 text-sm text-red-100 min-h-[60px]"></div>
+        </div>
+        <button id="btn-review"
+          class="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-700 disabled:text-gray-500 font-semibold py-2.5 rounded text-sm transition-colors"
+          disabled>
+          Run Vigil Review
+        </button>
+      </div>
+    </div>
+
+    <!-- Right Panel: Results -->
+    <div class="w-1/2 flex flex-col overflow-y-auto">
+      <!-- Status Bar -->
+      <div id="status-bar" class="p-4 border-b border-vigil-border flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div id="decision-badge" class="hidden px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"></div>
+          <span id="latency-display" class="text-xs text-gray-500"></span>
+        </div>
+        <div id="score-pills" class="flex gap-2 text-xs"></div>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loading-state" class="hidden flex-1 flex items-center justify-center">
+        <div class="text-center">
+          <div class="inline-block w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+          <p class="text-sm text-gray-400">Running safety analysis...</p>
+          <p id="loading-detail" class="text-xs text-gray-600 mt-1">4 agents reviewing in parallel</p>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="flex-1 flex items-center justify-center">
+        <div class="text-center text-gray-600">
+          <p class="text-lg mb-2">No review results yet</p>
+          <p class="text-sm">Select a scenario and click "Run Vigil Review"</p>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div id="results-container" class="hidden flex-1 p-4 space-y-4 overflow-y-auto">
+        <!-- Final Response -->
+        <section>
+          <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Final Response</h3>
+          <div id="final-response" class="bg-vigil-card border border-vigil-border rounded p-4 text-sm leading-relaxed whitespace-pre-wrap"></div>
+        </section>
+
+        <!-- Flags -->
+        <section id="flags-section" class="hidden">
+          <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Flags Detected</h3>
+          <div id="flags-list" class="flex flex-wrap gap-2"></div>
+        </section>
+
+        <!-- Agent Scores -->
+        <section>
+          <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Agent Scores</h3>
+          <div id="agent-scores" class="grid grid-cols-2 gap-3"></div>
+        </section>
+
+        <!-- Decision Math -->
+        <section>
+          <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Decision Math</h3>
+          <div id="decision-math" class="bg-vigil-card border border-vigil-border rounded p-4 text-xs font-mono space-y-1"></div>
+        </section>
+
+        <!-- Expected vs Actual -->
+        <section id="comparison-section">
+          <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Expected vs Actual</h3>
+          <div id="comparison-table" class="bg-vigil-card border border-vigil-border rounded overflow-hidden"></div>
+        </section>
+
+        <!-- Audit Record -->
+        <section>
+          <h3 class="text-xs text-gray-400 uppercase tracking-wider mb-2">Audit Record</h3>
+          <div class="flex items-center gap-2">
+            <span id="audit-id" class="text-xs text-gray-500 font-mono"></span>
+            <button id="btn-view-audit" class="text-xs text-blue-400 hover:text-blue-300 hidden">View Full Record</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <!-- Audit Detail Modal -->
+  <div id="audit-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div class="bg-vigil-card border border-vigil-border rounded-lg max-w-4xl max-h-[80vh] w-full mx-4 overflow-hidden flex flex-col">
+      <div class="p-4 border-b border-vigil-border flex items-center justify-between">
+        <h3 class="text-sm font-semibold">Full Audit Record</h3>
+        <button id="btn-close-modal" class="text-gray-400 hover:text-white">&times;</button>
+      </div>
+      <div class="p-4 overflow-y-auto flex-1">
+        <pre id="audit-json" class="text-xs text-gray-300 whitespace-pre-wrap break-words"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+/* Vigil Demo UI — Custom Styles */
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Decision badge colors */
+.badge-pass {
+  background-color: #22c55e;
+  color: #052e16;
+}
+.badge-rewrite {
+  background-color: #f59e0b;
+  color: #451a03;
+}
+.badge-block {
+  background-color: #ef4444;
+  color: #450a0a;
+}
+.badge-escalate {
+  background-color: #dc2626;
+  color: white;
+  animation: pulse-glow 1.5s ease-in-out infinite;
+}
+.badge-ask-human {
+  background-color: #8b5cf6;
+  color: white;
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 12px 4px rgba(220, 38, 38, 0.3);
+  }
+}
+
+/* Score bar */
+.score-bar {
+  height: 4px;
+  border-radius: 2px;
+  background-color: #334155;
+  overflow: hidden;
+}
+.score-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s ease-out;
+}
+.score-green {
+  background-color: #22c55e;
+}
+.score-yellow {
+  background-color: #f59e0b;
+}
+.score-red {
+  background-color: #ef4444;
+}
+
+/* Flag pills */
+.flag-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.flag-clinical {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.flag-boundary {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #fde68a;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.flag-regulation {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+.flag-escalation {
+  background-color: rgba(220, 38, 38, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+/* Conversation bubbles */
+.msg-user {
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 12px 12px 4px 12px;
+}
+.msg-assistant {
+  background-color: rgba(100, 116, 139, 0.1);
+  border: 1px solid rgba(100, 116, 139, 0.2);
+  border-radius: 12px 12px 12px 4px;
+}
+
+/* Comparison table */
+.cmp-match {
+  color: #22c55e;
+}
+.cmp-mismatch {
+  color: #ef4444;
+}
+.cmp-range {
+  color: #f59e0b;
+}
+
+/* Loading animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+.loading-shimmer {
+  background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
