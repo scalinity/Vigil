@@ -40,6 +40,7 @@ let lastFullResult = null; // Last full audit record for modal
 let isAuditExpanded = false;
 let activeReviewController = null; // AbortController for in-flight review
 let activeAuditFetchId = null; // Track which audit fetch is current
+let modalPreviousFocus = null; // Focus restoration target when modal closes
 const MAX_AUDIT_ENTRIES = 50;
 
 // ============================================================
@@ -124,11 +125,31 @@ async function init() {
   els.scenarioSelect.addEventListener("change", onScenarioChange);
   els.btnReview.addEventListener("click", runReview);
   els.btnViewAudit.addEventListener("click", viewAuditRecord);
-  els.btnCloseModal.addEventListener("click", () =>
-    els.auditModal.classList.add("hidden"),
-  );
+  els.btnCloseModal.addEventListener("click", closeModal);
   els.auditModal.addEventListener("click", (e) => {
-    if (e.target === els.auditModal) els.auditModal.classList.add("hidden");
+    if (e.target === els.auditModal) closeModal();
+  });
+
+  // Modal focus trap
+  els.auditModal.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      closeModal();
+      return;
+    }
+    if (e.key !== "Tab") return;
+    const focusable = els.auditModal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
   });
 
   // Audit trail toggle
@@ -268,7 +289,7 @@ function handleKeyboard(e) {
 
   // Escape: Close modal
   if (e.key === "Escape") {
-    els.auditModal.classList.add("hidden");
+    closeModal();
   }
 }
 
@@ -1231,6 +1252,7 @@ function loadAuditEntry(index) {
 
 function toggleAuditTrail() {
   isAuditExpanded = !isAuditExpanded;
+  els.btnToggleAudit.setAttribute("aria-expanded", String(isAuditExpanded));
   if (isAuditExpanded) {
     els.auditTrailBody.classList.remove("hidden");
     els.auditChevron.style.transform = "rotate(180deg)";
@@ -1249,6 +1271,7 @@ async function viewAuditRecord() {
   if (!auditId) return;
 
   els.auditJson.textContent = "Loading...";
+  modalPreviousFocus = document.activeElement;
   els.auditModal.classList.remove("hidden");
 
   // Focus the close button for keyboard accessibility
@@ -1273,6 +1296,14 @@ async function viewAuditRecord() {
     els.auditJson.textContent = JSON.stringify(data, null, 2);
   } catch (e) {
     els.auditJson.textContent = `Error: ${e.message}`;
+  }
+}
+
+function closeModal() {
+  els.auditModal.classList.add("hidden");
+  if (modalPreviousFocus) {
+    modalPreviousFocus.focus();
+    modalPreviousFocus = null;
   }
 }
 

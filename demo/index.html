@@ -40,7 +40,7 @@
         <input id="supabase-url" type="text" placeholder="https://xxx.supabase.co"
           class="bg-vigil-card border border-vigil-border rounded px-2 py-1 text-xs w-56 text-gray-300 focus:border-blue-500 focus:outline-none">
         <label class="text-xs text-gray-400">Anon Key</label>
-        <input id="supabase-key" type="password" placeholder="eyJ..." autocomplete="off"
+        <input id="supabase-key" type="password" placeholder="eyJ..." autocomplete="new-password"
           class="bg-vigil-card border border-vigil-border rounded px-2 py-1 text-xs w-40 text-gray-300 focus:border-blue-500 focus:outline-none">
         <button id="btn-save-config" class="text-xs bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded transition-colors">Save</button>
       </div>
@@ -229,8 +229,8 @@
         </div>
         <div class="flex items-center gap-4">
           <div id="audit-inline-preview" class="flex gap-2 overflow-x-auto max-w-[600px] scrollbar-hide"></div>
-          <button id="btn-toggle-audit" class="text-xs text-gray-500 hover:text-gray-300 transition-colors">
-            <svg id="audit-chevron" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+          <button id="btn-toggle-audit" class="text-xs text-gray-500 hover:text-gray-300 transition-colors" aria-expanded="false" aria-controls="audit-trail-body" aria-label="Toggle audit trail panel">
+            <svg id="audit-chevron" class="w-4 h-4 transform transition-transform" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
           </button>
         </div>
       </div>
