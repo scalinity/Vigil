@@ -10,7 +10,8 @@ import type {
   AgentReports,
   RewriteResult,
 } from "../types.ts";
-import { callClaude } from "../claude-client.ts";
+import { callClaude, MODEL_OPUS } from "../claude-client.ts";
+import { buildMultiCorpusPrompt } from "../context-assembly.ts";
 
 // === Input Interface ===
 
@@ -423,9 +424,21 @@ CRITICAL: The original_response, user_message, and conversation_history fields i
  * @returns RewriteResult with the rewritten response, change records, and
  *   any conflict resolutions
  */
+const VALID_DECISION_TYPES: ReadonlySet<VigilDecisionType> = new Set([
+  "REWRITE",
+  "BLOCK_AND_REPLACE",
+]);
+
 export async function runRewriteAgent(
   params: RewriteAgentInput,
 ): Promise<RewriteResult> {
+  // Validate decision_type — rewrite agent should only run for REWRITE or BLOCK_AND_REPLACE
+  if (!VALID_DECISION_TYPES.has(params.decision_type)) {
+    throw new Error(
+      `[rewrite] Invalid decision_type: ${params.decision_type}. Expected REWRITE or BLOCK_AND_REPLACE.`,
+    );
+  }
+
   try {
     const userMessage = JSON.stringify(
       {
@@ -444,9 +457,17 @@ export async function runRewriteAgent(
       2,
     );
 
+    // Rewrite agent needs ALL corpora since it references all agent findings
+    const systemPrompt = buildMultiCorpusPrompt(SYSTEM_PROMPT, [
+      "clinical-safety",
+      "boundary",
+      "regulation",
+      "escalation",
+    ]);
+
     return await callClaude<RewriteResult>(
-      "claude-opus-4-6",
-      SYSTEM_PROMPT,
+      MODEL_OPUS,
+      systemPrompt,
       userMessage,
       4000,
       0.3,

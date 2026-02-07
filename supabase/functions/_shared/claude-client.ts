@@ -7,6 +7,10 @@ const CLAUDE_TIMEOUT_MS = 30_000; // 30s absolute max per API call
 const MAX_RETRIES = 2; // retry transient failures up to 2 times
 const RETRY_BASE_MS = 1_000; // 1s base for exponential backoff
 
+// Centralized model constants — used by all agents
+export const MODEL_OPUS = "claude-opus-4-6";
+export const MODEL_HAIKU = "claude-3-5-haiku-20241022";
+
 let _client: Anthropic | null = null;
 
 function getClient(): Anthropic {
@@ -55,7 +59,7 @@ function sleep(ms: number): Promise<void> {
  * - Markdown fence stripping with warning
  * - Sanitized error messages (no user content in thrown errors)
  *
- * @param model - "claude-opus-4-6" for review/rewrite, "claude-3-5-haiku-20241022" for triage
+ * @param model - MODEL_OPUS for review/rewrite agents, MODEL_HAIKU for triage
  * @param systemPrompt - Agent-specific system prompt
  * @param userMessage - The formatted context payload
  * @param maxTokens - Token budget for the response
@@ -94,7 +98,7 @@ export async function callClaude<T>(
           system: systemPrompt,
           messages: [{ role: "user", content: userMessage }],
         }),
-        new Promise((_resolve, reject) =>
+        new Promise<never>((_, reject) =>
           setTimeout(
             () =>
               reject(

@@ -7,7 +7,8 @@
 // Spec: /Specs/04-regulation-agent.md
 
 import type { ContextPayload, RegulationReport } from "../types.ts";
-import { callClaude } from "../claude-client.ts";
+import { callClaude, MODEL_OPUS } from "../claude-client.ts";
+import { buildSystemPrompt, formatUserMessage } from "../context-assembly.ts";
 
 const SYSTEM_PROMPT = `You are a nervous system state assessment specialist reviewing AI therapy responses for state-appropriateness.
 
@@ -395,20 +396,13 @@ export async function runRegulationAgent(
   context: ContextPayload,
 ): Promise<RegulationReport> {
   try {
-    const userMessage = JSON.stringify(
-      {
-        user_message: context.user_message,
-        ai_response: context.ai_response,
-        conversation_history: context.conversation_history,
-        session_metadata: context.session_metadata,
-      },
-      null,
-      2,
-    );
+    const userMessage = formatUserMessage(context);
+
+    const systemPrompt = buildSystemPrompt(SYSTEM_PROMPT, "regulation");
 
     return await callClaude<RegulationReport>(
-      "claude-opus-4-6",
-      SYSTEM_PROMPT,
+      MODEL_OPUS,
+      systemPrompt,
       userMessage,
       2000,
     );
