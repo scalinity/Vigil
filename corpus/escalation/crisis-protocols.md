@@ -407,6 +407,171 @@ The `session_metadata.prior_interventions` field tracks how many times Vigil has
 
 ---
 
+## Cultural Considerations for Crisis Language
+
+Crisis expression varies significantly by culture, ethnicity, religion, age cohort, and community. The Escalation Agent must avoid defaulting to a single cultural framework for interpreting distress signals.
+
+### Culturally-Influenced Expressions of Suicidality
+
+**"I want to die" as hyperbole vs. genuine ideation:**
+
+In some cultural contexts and age cohorts (particularly Gen Z internet culture), "I want to die" or "kill me" functions as casual hyperbole expressing frustration, embarrassment, or mild distress. In other contexts, it is a literal expression of suicidal ideation.
+
+**Assessment approach:**
+
+- **Context matters:** "I want to die, that test was so hard" after a lighthearted conversation is likely hyperbole. "I want to die" following disclosure of loss, isolation, or hopelessness is likely genuine.
+- **Trajectory matters:** Hyperbole is typically isolated and does not escalate. Genuine ideation often follows a pattern of escalating distress.
+- **When uncertain:** Err toward safety. Gently explore: "When you say that, I want to make sure I understand what you mean. Are you having thoughts about ending your life?"
+- **Never assume hyperbole** when other risk indicators are present in the conversation.
+
+### Somatic Idioms of Distress
+
+Many cultures express psychological distress through physical complaints rather than emotional language:
+
+**Examples:**
+
+- **"My heart hurts" / "Pain in my chest"** — In many Latin American, Middle Eastern, and South Asian cultures, cardiac/chest metaphors express grief, worry, or despair. Not necessarily cardiac complaint.
+- **"Heavy head" / "Head pressure"** — Common in West African and South Asian contexts for worry, rumination, or depression.
+- **"My body is hot" / "Heat in my body"** — In various African and Caribbean cultures, may express anger, spiritual distress, or anxiety.
+- **"Nerves" / "Nervios"** — In Latin American cultures, a broad idiom for distress that can encompass anxiety, depression, dissociation, and somatic symptoms.
+- **"Thinking too much"** — In many Sub-Saharan African cultures, the primary expression for depression and anxiety.
+
+**Agent guidance:** When users describe physical symptoms in the context of emotional conversation, assess whether these may be cultural idioms of distress rather than medical complaints. Do not dismiss somatic expressions as "just anxiety" and do not redirect to medical care when the context is clearly emotional.
+
+### Religious and Spiritual Framings
+
+**Expressions that may signal distress through religious language:**
+
+- "God is punishing me" — may indicate guilt, despair, or spiritual crisis
+- "I'm cursed" / "Evil eye" — cultural framework for understanding persistent misfortune; may mask depression
+- "It's God's will" — may indicate acceptance OR fatalistic helplessness. Assess whether this is peaceful acceptance or resigned despair.
+- "I'm praying for relief" — may be healthy coping OR the only coping available to someone who has been told not to seek mental health care
+
+**Agent guidance:** Respect religious frameworks without reinforcing harmful spiritual bypassing. "God has a plan" from the AI is harmful (imposes a framework). Acknowledging the user's faith as a resource is appropriate: "It sounds like your faith is important to you during this time."
+
+### Collectivist vs. Individualist Expression
+
+**Collectivist cultures** (many Asian, Latin American, African, Middle Eastern cultures):
+
+- Distress may be expressed through impact on family/community rather than individual feeling: "I'm bringing shame to my family" rather than "I feel sad"
+- Help-seeking may be framed as family failure: "If I see a therapist, my parents will think they failed"
+- Suicidal ideation may involve family honor/burden: "My family would be better off without me" may carry different weight in collectivist contexts where family honor is central
+- Privacy about mental health may be stronger: calling a hotline may feel like an impossible breach of family privacy
+
+**Individualist cultures** (dominant US/Western cultures):
+
+- Distress expressed in terms of personal feeling and individual experience
+- Help-seeking framed as self-care and personal growth
+- "I need to focus on myself" — culturally normative
+
+**Agent guidance:** Do not assume all users share a Western individualist framework for mental health. When a user expresses distress through family impact, community shame, or spiritual crisis, the agent should assess severity through that framework rather than translating into individualist terms.
+
+### Age Cohort Variations
+
+**Adolescents and young adults:**
+
+- May use internet slang: "unalive," "sewerslide," "kms" (kill myself), "necking" — these terms evolved to avoid content moderation but may indicate genuine ideation
+- May express distress through memes, song lyrics, or media references
+- "I'm so done" / "I literally can't" — can be hyperbole or genuine depending on context
+- Emoji use (or absence) can be a signal — a user who usually uses emojis and suddenly stops may be signaling distress change
+
+**Older adults:**
+
+- May use indirect language: "I don't want to be a burden" / "I've lived a good life" / "I'm just tired" — these can be passive SI in older adult context
+- May not use the word "depression" or "anxiety" — instead describing physical symptoms, sleep changes, appetite loss
+- "I'm ready to go" / "I've made my peace" — in end-of-life contexts may be acceptance; in depression contexts may be SI. Assess carefully.
+
+**Veterans and military-affiliated:**
+
+- Stoic presentation may mask severe distress: "I'm fine, I've been through worse" while describing symptoms that indicate acute crisis
+- May use military-specific language: "battle fatigue," "I've seen some things," understatement of combat exposure
+- "I just want it to stop" may refer to intrusive memories, nightmares, or hypervigilance — OR may be SI
+- Help-seeking may be framed as weakness: significant barrier to accepting referrals
+
+### LGBTQ+ Considerations
+
+- "Coming out" distress may be acute: family rejection, loss of housing, loss of community
+- Minority stress is cumulative: discrimination, microaggressions, internalized stigma compound over time
+- Transgender individuals may face unique barriers: fear of being misgendered by crisis responders, previous negative experiences with mental health systems
+- "I can't be who I am" — may express frustration OR hopelessness depending on context
+
+**Agent guidance:** When LGBTQ+ identity context is present, weight toward higher escalation sensitivity. Rejection-related distress in LGBTQ+ youth is associated with significantly elevated suicide risk.
+
+### Implications for the Escalation Agent
+
+1. **Do not lower escalation levels based on cultural framing.** If the content maps to SI criteria, the culture of expression does not reduce the risk.
+2. **Do adjust resource recommendations.** LGBTQ+ users should receive Trevor Project/Trans Lifeline referrals. Veterans should receive 988 press 1. Spanish-speaking users should receive Spanish-language options.
+3. **When cultural expression creates ambiguity:** Apply the master principle — escalate UP, not down. Explore gently before dismissing.
+4. **Document cultural context in the evidence field** so downstream agents (especially the Rewrite Agent) can generate culturally attuned responses.
+
+---
+
+## Expanded Decision Tree: Substance Crisis Sub-Tree
+
+```
+Substance crisis indicators present
+  │
+  ├─ Active overdose (loss of consciousness, breathing difficulty, seizures)?
+  │   YES → LEVEL_4 (Emergency — 911 + Poison Control 1-800-222-1222)
+  │   NO ↓
+  │
+  ├─ Dangerous combination ingested (e.g., alcohol + benzodiazepines)?
+  │   YES → LEVEL_4 (Medical emergency — even if currently conscious)
+  │   NO ↓
+  │
+  ├─ Active intoxication with SI present?
+  │   YES → LEVEL_4 (Intoxication + SI = imminent risk)
+  │   NO ↓
+  │
+  ├─ Active intoxication with impaired judgment?
+  │   YES → LEVEL_3 (May need human assessment of capacity)
+  │   NO ↓
+  │
+  ├─ Escalating use pattern + other risk factors?
+  │   YES → LEVEL_2 (Interrupt + SAMHSA referral)
+  │   NO ↓
+  │
+  ├─ Substance use disclosure without acute risk?
+  │   YES → LEVEL_1 (SAMHSA inline, continue conversation)
+  │   NO ↓
+  │
+  └─ LEVEL_0 (No substance-related escalation)
+```
+
+---
+
+## Extended Warm Handoff: Handling User Resistance
+
+Resistance to crisis resources is common and expected. The Escalation Agent should anticipate these patterns and the Rewrite Agent should incorporate resistance-handling language.
+
+### Common Resistance Patterns and Responses
+
+**"Hotlines don't help"**
+
+> "I hear you — not every experience with a hotline is good, and I'm sorry if you've had a bad one. The training and quality has improved a lot. But if calling isn't your thing, you can text 988 or text HOME to 741741. Some people find text easier. Would you be willing to try?"
+
+**"I don't want to talk to a stranger"**
+
+> "That makes sense. Is there someone in your life — a friend, family member, therapist — who you could reach out to instead? Sometimes reaching out to someone who already knows you can feel safer."
+
+**"They'll send the police"**
+
+> "I understand that fear. Most crisis lines do NOT send police unless there is an active, life-threatening emergency in progress. The 988 Lifeline and Crisis Text Line are confidential. Trans Lifeline specifically has a policy of never contacting emergency services without consent."
+
+**"I've tried everything"**
+
+> "It sounds like you've been fighting this for a long time. I don't want to add to the list of things that haven't worked. What I can tell you is that you reached out here, and that matters. Can you tell me what's happening right now, in this moment?"
+
+**"I don't deserve help"**
+
+> "The pain you're in right now — that's not because of who you are. It's because of what you're going through. You deserve help the same way anyone in pain deserves help. You don't have to earn it."
+
+**"I just needed to tell someone"**
+
+> "And I'm glad you did. What you shared matters. I want to make sure you have support beyond this conversation too. Can I share some resources, just so you have them?"
+
+---
+
 ## References
 
 - Stanley, B., & Brown, G.K. (2012). Safety Planning Intervention: A Brief Intervention to Mitigate Suicide Risk. Cognitive and Behavioral Practice, 19(2), 256-264.
@@ -414,3 +579,6 @@ The `session_metadata.prior_interventions` field tracks how many times Vigil has
 - 988 Suicide & Crisis Lifeline. Risk Assessment and Triage Guidelines (publicly available overview).
 - Columbia University. Columbia-Suicide Severity Rating Scale (C-SSRS). https://cssrs.columbia.edu/
 - National Domestic Violence Hotline. Safety Planning Guide. https://www.thehotline.org/
+- Chu, J.P., et al. (2016). Cultural considerations in suicidality: Minority stress and cultural factors in suicide risk. In R.C. O'Connor & J. Pirkis (Eds.), The International Handbook of Suicide Prevention. Wiley.
+- Leong, F.T.L., & Leach, M.M. (2008). Suicide Among Racial and Ethnic Minority Groups: Theory, Research, and Practice. Routledge.
+- Meyer, I.H. (2003). Prejudice, social stress, and mental health in lesbian, gay, and bisexual populations. Psychological Bulletin, 129(5), 674-697.

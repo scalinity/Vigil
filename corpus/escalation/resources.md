@@ -17,6 +17,7 @@ Comprehensive US-focused crisis resource directory for the Escalation Agent. Eac
   - Veterans: Dial 988, press 1
   - LGBTQ+ youth: Dial 988 (trained in LGBTQ+ concerns)
   - Spanish: Dial 988, press 2
+  - Native and Indigenous: 988 connects to culturally informed counselors; callers can request Native-specific support
 
 ### Crisis Text Line
 
@@ -158,6 +159,27 @@ Comprehensive US-focused crisis resource directory for the Escalation Agent. Eac
 
 ---
 
+## Elder Abuse
+
+### Eldercare Locator
+
+- **Call:** 1-800-677-1116
+- **Hours:** Monday-Friday 9am-8pm ET
+- **Website:** https://eldercare.acl.gov/
+- **Who it serves:** Older adults experiencing abuse, neglect, or exploitation, and those who suspect elder abuse
+- **What to expect:** Connected to local Area Agency on Aging or other community resources. They can provide referrals to Adult Protective Services (APS), legal aid, long-term care ombudsman programs, and local support services. They do not investigate directly but connect callers to the appropriate local agency.
+- **Types of elder abuse covered:** Physical abuse, emotional abuse, financial exploitation, neglect, sexual abuse, abandonment, self-neglect
+
+### Adult Protective Services (APS)
+
+- **Contact:** Varies by state — no single national number
+- **How to find:** Call 1-800-677-1116 (Eldercare Locator) for local APS number, or search online for "[state] Adult Protective Services"
+- **Who it serves:** Vulnerable adults (typically 60+, or 18+ with disabilities) experiencing abuse, neglect, or exploitation
+- **What to expect:** APS investigates reports of adult abuse and neglect. They can conduct welfare checks, provide case management, and connect individuals with services. Reports can be anonymous. In many states, certain professionals are mandated reporters of elder abuse.
+- **Important for AI context:** Financial exploitation by family members is the most common form of elder abuse. Indicators include: unexplained financial changes, family member controlling access to finances, isolation from other family/friends, and the elder being told they are "confused" about their own finances.
+
+---
+
 ## Emergency Services
 
 ### 911
@@ -178,20 +200,21 @@ Comprehensive US-focused crisis resource directory for the Escalation Agent. Eac
 
 ### By Risk Type
 
-| Risk Type                | Primary Resource                  | Secondary Resource                         |
-| ------------------------ | --------------------------------- | ------------------------------------------ |
-| Suicidal ideation        | 988 Lifeline (call/text 988)      | Crisis Text Line (HOME to 741741)          |
-| Active attempt/overdose  | 911                               | Poison Control (1-800-222-1222)            |
-| Domestic violence        | NDVH (1-800-799-7233)             | RAINN (if sexual violence: 1-800-656-4673) |
-| Child abuse              | Childhelp (1-800-422-4453)        | 911 (if child is in immediate danger)      |
-| LGBTQ+ youth crisis      | Trevor Project (1-866-488-7386)   | 988 Lifeline                               |
-| Transgender crisis       | Trans Lifeline (1-877-565-8860)   | Trevor Project                             |
-| Substance crisis         | 988 Lifeline (acute crisis)       | SAMHSA (1-800-662-4357 for referrals)      |
-| Veteran crisis           | 988 press 1                       | Veterans Crisis Line text 838255           |
-| Eating disorder          | NEDA (1-800-931-2237)             | Crisis Text Line                           |
-| Postpartum crisis        | PSI (1-800-944-4773)              | 988 Lifeline                               |
-| Self-harm (acute)        | Crisis Text Line (HOME to 741741) | 988 Lifeline                               |
-| General emotional crisis | Crisis Text Line                  | 988 Lifeline                               |
+| Risk Type                | Primary Resource                   | Secondary Resource                         |
+| ------------------------ | ---------------------------------- | ------------------------------------------ |
+| Suicidal ideation        | 988 Lifeline (call/text 988)       | Crisis Text Line (HOME to 741741)          |
+| Active attempt/overdose  | 911                                | Poison Control (1-800-222-1222)            |
+| Elder abuse/exploitation | Eldercare Locator (1-800-677-1116) | Adult Protective Services (state-specific) |
+| Domestic violence        | NDVH (1-800-799-7233)              | RAINN (if sexual violence: 1-800-656-4673) |
+| Child abuse              | Childhelp (1-800-422-4453)         | 911 (if child is in immediate danger)      |
+| LGBTQ+ youth crisis      | Trevor Project (1-866-488-7386)    | 988 Lifeline                               |
+| Transgender crisis       | Trans Lifeline (1-877-565-8860)    | Trevor Project                             |
+| Substance crisis         | 988 Lifeline (acute crisis)        | SAMHSA (1-800-662-4357 for referrals)      |
+| Veteran crisis           | 988 press 1                        | Veterans Crisis Line text 838255           |
+| Eating disorder          | NEDA (1-800-931-2237)              | Crisis Text Line                           |
+| Postpartum crisis        | PSI (1-800-944-4773)               | 988 Lifeline                               |
+| Self-harm (acute)        | Crisis Text Line (HOME to 741741)  | 988 Lifeline                               |
+| General emotional crisis | Crisis Text Line                   | 988 Lifeline                               |
 
 ### By Preferred Contact Method
 
@@ -201,6 +224,34 @@ Comprehensive US-focused crisis resource directory for the Escalation Agent. Eac
 | Text message           | Crisis Text Line (HOME to 741741), or 988 text |
 | Online chat            | 988 chat, NDVH chat, Trevor Project chat       |
 | Peer support           | Trans Lifeline (staffed by trans individuals)  |
+
+### 988 Text vs. Crisis Text Line: When to Recommend Which
+
+Both 988 (text) and Crisis Text Line (HOME to 741741) are text-based crisis services, but they differ in important ways:
+
+| Feature            | 988 Text                                                                                 | Crisis Text Line (741741)                                                                |
+| ------------------ | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| **Routing**        | Routed to local crisis center based on area code                                         | National pool of trained counselors                                                      |
+| **Specialization** | Crisis centers may have local resources and can coordinate with local emergency services | General crisis support; some specialized queues (e.g., NEDA partnership)                 |
+| **Follow-up**      | May offer follow-up from local crisis center                                             | Single-session model, no follow-up                                                       |
+| **Wait time**      | Variable; depends on local center staffing                                               | Generally consistent; queued nationally                                                  |
+| **Best for**       | Suicidal crisis, when local resource connection is valuable                              | General emotional crisis, when the user prefers text, when local connection isn't needed |
+| **Veterans**       | Text 838255 for veteran-specific support                                                 | Not veteran-specialized                                                                  |
+
+**When to recommend 988 text:**
+
+- Suicidal ideation (988 crisis centers specialize in SI)
+- When local follow-up care would be valuable
+- Veterans (988 press 1, or text 838255)
+- When the user may need emergency services coordination
+
+**When to recommend Crisis Text Line (741741):**
+
+- General emotional crisis that doesn't require SI specialization
+- When the user specifically prefers text over phone
+- When the user has expressed distrust of local systems
+- Younger users who are more comfortable with text-first services
+- As a secondary option if the user resists calling 988
 
 ### Integration Notes
 
@@ -212,6 +263,52 @@ Comprehensive US-focused crisis resource directory for the Escalation Agent. Eac
 
 ---
 
+## Expanded Resource Context: What to Expect (Detailed)
+
+### What Happens When You Call 988
+
+1. An automated greeting asks you to press a number for language/specialty (1 for Veterans, 2 for Spanish)
+2. You are routed to the nearest available crisis center (there are 200+ local centers)
+3. A trained crisis counselor answers. They are NOT law enforcement.
+4. They will ask your name (you can use a pseudonym or decline) and what's happening
+5. They will listen, ask questions about your safety, and help you make a plan
+6. They may ask about access to means (firearms, medications, etc.)
+7. Most calls last 20-30 minutes
+8. In rare cases of imminent danger, they may coordinate with local emergency services — but this is NOT the default
+9. After the call, the crisis center may offer follow-up (varies by center)
+
+**Common fears addressed:**
+
+- "Will they send police?" — Only in rare cases of active, life-threatening emergency. The vast majority of calls do NOT result in emergency dispatch.
+- "Will it go on my record?" — No. Calls are confidential and not reported to employers, insurance, or government agencies.
+- "What if I'm not 'suicidal enough'?" — 988 is for anyone in emotional distress, not just active suicidal crisis. You don't need to meet a threshold.
+
+### What Happens When You Text HOME to 741741
+
+1. You receive an automated response confirming you're connected to Crisis Text Line
+2. You're placed in a queue (usually 5-15 minutes, can be longer during peak times)
+3. A trained crisis counselor responds via text
+4. The conversation is text-based throughout — you will never be called
+5. The counselor uses active listening, helps you process what's happening, and works toward a plan
+6. The conversation ends when you and the counselor agree you're in a safer place
+7. Typical conversations last 15-45 minutes
+
+**Why text matters:** Many people, especially younger demographics, find calling overwhelming. Text removes the barrier of voice communication and allows the person to pace the conversation.
+
+### What Happens When You Call NDVH (1-800-799-7233)
+
+1. A trained advocate answers (not a therapist, not law enforcement)
+2. They will ask if you're safe to talk right now
+3. They provide information about options — they do NOT tell you what to do
+4. They can help with: safety planning, understanding abuse dynamics, finding local shelters, legal options, and emotional support
+5. They will NOT pressure you to leave your partner or take any specific action
+6. They can connect you with local resources (shelters, legal aid, counseling)
+7. All services are free and confidential
+
+**Critical for AI context:** Many abuse survivors have been told what to do by everyone in their lives. The NDVH model is empowerment-based — they support the person's own decision-making. The AI should mirror this approach when making the referral.
+
+---
+
 ## Important Notes
 
 - All resources listed are US-based. International users may need different resources.
@@ -219,3 +316,4 @@ Comprehensive US-focused crisis resource directory for the Escalation Agent. Eac
 - No resource listed requires insurance or payment.
 - Some resources have mandatory reporting obligations (e.g., Childhelp if a child is in immediate danger). The AI should not promise absolute confidentiality.
 - Resource availability may vary. Phone lines occasionally have wait times. Text-based services may have queues. If the user reports difficulty reaching a resource, suggest alternative contact methods.
+- If a user reports a negative experience with a crisis resource, validate their experience and offer an alternative contact method or service rather than insisting they try again.
