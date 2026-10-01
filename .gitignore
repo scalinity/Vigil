@@ -34,3 +34,4 @@ build/
 
 # Specs - internal design docs
 Specs/
+.claude/
